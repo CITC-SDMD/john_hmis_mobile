@@ -81,7 +81,7 @@ const DashboardLayout = () => {
         }}
       />
       <Drawer.Screen
-        name="applicants/index"
+        name="applicants"
         options={{
           title: "Applicants",
           drawerLabel: "Applicants",
