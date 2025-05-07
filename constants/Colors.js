@@ -12,7 +12,7 @@ export const Colors = {
     border: "#E1E8ED",
     shadow: "rgba(30, 111, 217, 0.1)",
     backgroundColor: "#FFFFFF",
-    btn: '#2680eb'
+    blue: "#2680eb"
   },
   dark: {
     primary: "#1E6FD9",

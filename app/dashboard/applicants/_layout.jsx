@@ -13,14 +13,14 @@ export default function TabLayout() {
       headerShown: false 
     }}>
       <Tabs.Screen
-        name="index"
+        name="individual"
         options={{
           title: 'Individual',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="user" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="association"
+        name="association/index"
         options={{
           title: 'Association',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="users" color={color} />,

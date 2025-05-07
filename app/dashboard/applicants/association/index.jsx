@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const association = () => {
+const AssociationScreen = () => {
   return (
     <View>
       <Text>association</Text>
@@ -9,6 +9,6 @@ const association = () => {
   )
 }
 
-export default association
+export default AssociationScreen
 
 const styles = StyleSheet.create({})
