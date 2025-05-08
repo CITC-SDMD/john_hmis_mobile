@@ -7,7 +7,7 @@ const ThemedTableIndividual = ({  headers = [], data = [] }) => {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
   const screenWidth = Dimensions.get("window").width;
-  const cellWidth = screenWidth / 2;
+  const cellWidth = screenWidth / 6;
 
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={true}>
@@ -28,8 +28,6 @@ const ThemedTableIndividual = ({  headers = [], data = [] }) => {
             <Text style={[styles.cell, {width: cellWidth}]}>{row.phone_number}</Text>
             <Text style={[styles.cell, {width: cellWidth}]}>{row.schedule ?? 'N/A'}</Text>
             <Text style={[styles.cell, {width: cellWidth}]}>{row.schedule ?? 'N/A'}</Text>
-
-
           </View>
         ))}
       </View>
@@ -42,9 +40,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   cell: {
-    padding: 10,
+    padding: 7,
     borderWidth: 0.5,
     borderColor: '#ccc',
+    fontSize: 10,
   },
   headerCell: {
     fontWeight: 'bold',

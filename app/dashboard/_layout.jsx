@@ -23,7 +23,7 @@ const CustomDrawerContent = (props) => {
           "You have been successfully logged out",
           ALERT_TYPE.SUCCESS
         );
-        router.replace("/(auth)/login");
+        router.replace("/login");
       }
     } catch (error) {
       console.log("Logout error:", error);
@@ -64,10 +64,10 @@ const DashboardLayout = () => {
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerStyle: {
-          backgroundColor: theme.primary,
+          backgroundColor: theme.blue,
         },
         headerTintColor: "#fff",
-        drawerActiveTintColor: theme.primary,
+        drawerActiveTintColor: theme.blue,
       }}
     >
       <Drawer.Screen
