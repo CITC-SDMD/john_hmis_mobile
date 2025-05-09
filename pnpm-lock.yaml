@@ -50,9 +50,15 @@ dependencies:
   react-native-alert-notification:
     specifier: ^0.4.2
     version: 0.4.2(react-native-safe-area-context@5.4.0)(react-native@0.79.2)(react@19.0.0)
+  react-native-dots-pagination:
+    specifier: ^0.3.1
+    version: 0.3.1
   react-native-gesture-handler:
     specifier: ~2.24.0
     version: 2.24.0(react-native@0.79.2)(react@19.0.0)
+  react-native-pager-view:
+    specifier: ^6.7.1
+    version: 6.7.1(react-native@0.79.2)(react@19.0.0)
   react-native-reanimated:
     specifier: ~3.17.4
     version: 3.17.5(@babel/core@7.27.1)(react-native@0.79.2)(react@19.0.0)
@@ -4423,6 +4429,14 @@ packages:
       sisteransi: 1.0.5
     dev: false
 
+  /prop-types@15.8.1:
+    resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
+    dependencies:
+      loose-envify: 1.4.0
+      object-assign: 4.1.1
+      react-is: 16.13.1
+    dev: false
+
   /punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
@@ -4520,6 +4534,12 @@ packages:
       dotenv: 16.4.7
     dev: true
 
+  /react-native-dots-pagination@0.3.1:
+    resolution: {integrity: sha512-Z9+z6lSruQ84aNMOHsQ/wkh/K+A5IWciNuz5St+yQUp4eEyvCkA8nPkNAl+MEV4GVdO7rrh276M8in1ePJr17g==}
+    dependencies:
+      prop-types: 15.8.1
+    dev: false
+
   /react-native-drawer-layout@4.1.8(react-native-gesture-handler@2.24.0)(react-native-reanimated@3.17.5)(react-native@0.79.2)(react@19.0.0):
     resolution: {integrity: sha512-NyAvx3VknkibuaLH2zl96hvMrjCrXnjpH2H/BwTZxFV1BzzegI51+wa8TgttKW343Kd8+9DOWOLX4xhXC1LEAA==}
     peerDependencies:
@@ -4560,6 +4580,16 @@ packages:
 
   /react-native-is-edge-to-edge@1.1.7(react-native@0.79.2)(react@19.0.0):
     resolution: {integrity: sha512-EH6i7E8epJGIcu7KpfXYXiV2JFIYITtq+rVS8uEb+92naMRBdxhTuS8Wn2Q7j9sqyO0B+Xbaaf9VdipIAmGW4w==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+    dependencies:
+      react: 19.0.0
+      react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
+    dev: false
+
+  /react-native-pager-view@6.7.1(react-native@0.79.2)(react@19.0.0):
+    resolution: {integrity: sha512-cBSr6xw4g5N7Kd3VGWcf+kmaH7iBWb0DXAf2bVo3bXkzBcBbTOmYSvc0LVLHhUPW8nEq5WjT9LCIYAzgF++EXw==}
     peerDependencies:
       react: '*'
       react-native: '*'
