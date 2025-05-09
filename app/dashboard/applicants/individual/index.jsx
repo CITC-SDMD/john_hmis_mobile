@@ -246,7 +246,6 @@ const IndividualScreen = () => {
       <View style={styles.containerBody}>
         <FlatList
           data={applicants.data}
-          onScroll
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
