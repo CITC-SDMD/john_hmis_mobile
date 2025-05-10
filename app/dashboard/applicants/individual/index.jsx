@@ -14,26 +14,29 @@ import { Colors } from "../../../../constants/Colors";
 import { applicantService } from "../../../../components/API/ApplicantService";
 import ThemedView from "../../../../components/ThemedForm/ThemedView";
 import ThemedCard from "../../../../components/ThemedForm/ThemedCard";
-import PaginationControl from "../../../../components/ThemedForm/ThemedDotPagination";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 const IndividualScreen = () => {
   const colorScheme = useColorScheme();
   const widthTab = Dimensions.get("window").width / 4.4;
   const theme = Colors[colorScheme] ?? Colors.light;
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [applicants, setApplicants] = useState([]);
   const [activeTab, setActiveTab] = useState("new");
+  const [currentPage, setCurrentPage] = useState({
+    new: 1,
+    schedule: 1,
+    approved: 1,
+    disapproved: 1
+  });
 
-  const [newCurrentPage, setNewCurrentPage] = useState(1);
-  const [scheduleCurrentPage, setScheduleCurrentPage] = useState(1);
-  const [approvedCurrentPage, setApprovedCurrentPage] = useState(1);
-  const [disapprovedCurrentPage, setDisapprovedCurrentPage] = useState(1);
-
-  const [newTotalPages, setNewTotalPages] = useState(1);
-  const [scheduleTotalPages, setScheduleTotalPages] = useState(1);
-  const [approvedTotalPages, setApprovedTotalPages] = useState(1);
-  const [disapprovedTotalPages, setDisapprovedTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState({
+    new: 1,
+    schedule: 1,
+    approved: 1,
+    disapproved: 1
+  });
 
   const tabs = [
     { id: "new", label: "New" },
@@ -43,154 +46,117 @@ const IndividualScreen = () => {
   ];
 
   useEffect(() => {
-    fetchApplicants();
-  }, [newCurrentPage]);
+    // fetchData(activeTab);
+    fetchData("new", 1);
+  }, []);
 
-  useEffect(() => {
-    fetchData(activeTab);
-  }, [
-    activeTab,
-    scheduleCurrentPage,
-    approvedCurrentPage,
-    disapprovedCurrentPage,
-  ]);
 
-  const getCurrentPage = () => {
-    switch (activeTab) {
-      case "new":
-        return newCurrentPage;
-      case "schedule":
-        return scheduleCurrentPage;
-      case "approved":
-        return approvedCurrentPage;
-      case "disapproved":
-        return disapprovedCurrentPage;
-      default:
-        return 1;
+  const fetchData = async (tabType, page = currentPage[tabType]) => {
+    try {
+      setIsLoading(true);
+      let response;
+      const params = { page };
+
+      switch (tabType) {
+        case "new":
+          response = await applicantService.getApplicants(params);
+          break;
+        case "schedule":
+          response = await applicantService.getApplicantsSchedule(params);
+          break;
+        case "approved":
+          response = await applicantService.getApproved(params);
+          break;
+        case "disapproved":
+          response = await applicantService.getRejected(params);
+          break;
+        default:
+          response = await applicantService.getApplicants(params);
+      }
+
+      if (response.data) {
+        setApplicants(response.data);
+        setTotalPages(prev => ({
+          ...prev,
+          [tabType]: response.meta?.last_page || 1
+        }));
+      }
+    } catch (error) {
+      console.log("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
-  const getTotalPages = () => {
-    switch (activeTab) {
-      case "new":
-        return newTotalPages;
-      case "schedule":
-        return scheduleTotalPages;
-      case "approved":
-        return approvedTotalPages;
-      case "disapproved":
-        return disapprovedTotalPages;
-      default:
-        return 1;
+  const loadMoreData = useCallback(() => {
+    const nextPage = currentPage[activeTab] + 1;
+    if (nextPage <= totalPages[activeTab] && !isLoadingMore) {
+      setIsLoadingMore(true);
+      setCurrentPage(prev => ({
+        ...prev,
+        [activeTab]: nextPage
+      }));
+      fetchMoreData(activeTab, nextPage);
+    }
+  }, [currentPage, totalPages, activeTab, isLoadingMore]);
+
+  const fetchMoreData = async (tabType, page) => {
+    try {
+      let response;
+      const params = { page };
+
+      switch (tabType) {
+        case "new":
+          response = await applicantService.getApplicants(params);
+          break;
+        case "schedule":
+          response = await applicantService.getApplicantsSchedule(params);
+          break;
+        case "approved":
+          response = await applicantService.getApproved(params);
+          break;
+        case "disapproved":
+          response = await applicantService.getRejected(params);
+          break;
+        default:
+          response = await applicantService.getApplicants(params);
+      }
+
+      if (response.data) {
+        setApplicants(prevApplicants => [...prevApplicants, ...response.data]);
+      }
+    } catch (error) {
+      console.log("Error loading more data:", error);
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
-  const handlePageChange = (newPage) => {
-    switch (activeTab) {
-      case "new":
-        setNewCurrentPage(newPage);
-        break;
-      case "schedule":
-        setScheduleCurrentPage(newPage);
-        break;
-      case "approved":
-        setApprovedCurrentPage(newPage);
-        break;
-      case "disapproved":
-        setDisapprovedCurrentPage(newPage);
-        break;
-    }
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setApplicants([]);
+    setCurrentPage(prev => ({
+      ...prev,
+      [tabId]: 1
+    }));
+    fetchData(tabId, 1);
   };
 
-  const fetchData = async (value) => {
-    if (value === "new") {
-      await fetchApplicants();
-    } else if (value === "schedule") {
-      await fetchIndividualSchedule();
-    } else if (value === "approved") {
-      await fetchApproved();
-    } else if (value === "disapproved") {
-      await fetchDisapproved();
-    }
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+
+    return (
+      <View style={styles.footer}>
+        <ActivityIndicator size="small" color={theme.primary} />
+        <Text style={[styles.footerText, { color: theme.textLight }]}>
+          Loading more...
+        </Text>
+      </View>
+    );
   };
 
-  async function fetchApplicants() {
-    try {
-      setIsLoading(true);
-      const params = {
-        page: newCurrentPage,
-      };
-      const response = await applicantService.getApplicants(params);
-      if (response.data) {
-        console.log(response.data);
-        setApplicants(response);
-        setNewTotalPages(response.meta?.last_page || 1);
-      }
-    } catch (error) {
-      console.log("Error", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function fetchIndividualSchedule() {
-    try {
-      setIsLoading(true);
-      const params = {
-        page: scheduleCurrentPage,
-      };
-      const response = await applicantService.getApplicantsSchedule(params);
-      if (response.data) {
-        console.log(response.data);
-        setApplicants(response);
-        setScheduleTotalPages(response.meta?.last_page || 1);
-      }
-    } catch (error) {
-      console.log("Error", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function fetchApproved() {
-    try {
-      setIsLoading(true);
-      const params = {
-        page: approvedCurrentPage,
-      };
-      const response = await applicantService.getApproved(params);
-      if (response.data) {
-        console.log(response.data);
-        setApplicants(response);
-        setApprovedTotalPages(response.meta?.last_page || 1);
-      }
-    } catch (error) {
-      console.log("Error", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function fetchDisapproved() {
-    try {
-      setIsLoading(true);
-      const params = {
-        page: disapprovedCurrentPage,
-      };
-      const response = await applicantService.getRejected(params);
-      if (response.data) {
-        console.log(response.data);
-        setApplicants(response);
-        setDisapprovedTotalPages(response.meta?.last_page || 1);
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  if (isLoading) {
+  if (isLoading && applicants.length === 0) {
     return (
       <SafeAreaView
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
@@ -211,10 +177,7 @@ const IndividualScreen = () => {
           {tabs.map((tab) => (
             <TouchableOpacity
               key={tab.id}
-              onPress={() => {
-                setActiveTab(tab.id);
-                fetchData(tab.id);
-              }}
+              onPress={() => handleTabChange(tab.id)}
               style={[
                 styles.tab,
                 activeTab === tab.id && styles.activeTab,
@@ -245,8 +208,8 @@ const IndividualScreen = () => {
 
       <View style={styles.containerBody}>
         <FlatList
-          data={applicants.data}
-          keyExtractor={(item) => item.id.toString()}
+          data={applicants}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <TouchableOpacity>
@@ -260,14 +223,11 @@ const IndividualScreen = () => {
           ListEmptyComponent={
             <Text style={styles.emptyText}>No applicants found</Text>
           }
+          onEndReached={loadMoreData}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
         />
       </View>
-      <PaginationControl
-        currentPage={getCurrentPage()}
-        totalPages={getTotalPages()}
-        onPageChange={handlePageChange}
-      />
-      
     </ThemedView>
   );
 };
@@ -280,6 +240,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   containerBody: {
+    flex: 1,
     padding: 15,
   },
   title: {
@@ -318,4 +279,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#8A94A6",
   },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+  },
+  footerText: {
+    marginLeft: 10,
+  }
 });
