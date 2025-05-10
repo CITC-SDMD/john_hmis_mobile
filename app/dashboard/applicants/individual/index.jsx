@@ -46,7 +46,6 @@ const IndividualScreen = () => {
   ];
 
   useEffect(() => {
-    // fetchData(activeTab);
     fetchData("new", 1);
   }, []);
 
@@ -241,12 +240,12 @@ const styles = StyleSheet.create({
   },
   containerBody: {
     flex: 1,
-    padding: 15,
+    padding: 10,
   },
   title: {
     fontSize: 17,
-    fontWeight: "bold",
-    marginVertical: 20,
+    fontWeight: "medium",
+    marginVertical: 5,
   },
   tabContainer: {
     alignItems: "center",
@@ -255,7 +254,7 @@ const styles = StyleSheet.create({
   tab: {
     alignItems: "center",
     paddingVertical: 10,
-    borderBottomWidth: 2,
+    borderBottomWidth: 3,
   },
   tabText: {
     fontSize: 15,
