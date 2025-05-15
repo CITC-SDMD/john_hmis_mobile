@@ -1,24 +1,30 @@
-import { StatusBar } from "react-native";
-import { AlertNotificationRoot} from 'react-native-alert-notification';
+import { StatusBar, Platform } from "react-native";
+import { MenuProvider } from "react-native-popup-menu";
+import { AlertNotificationRoot } from "react-native-alert-notification";
 import { Stack } from "expo-router";
 import React from "react";
 
 const RootLayout = () => {
   return (
     <AlertNotificationRoot theme="light">
-      <StatusBar styles="auto" />
-      <Stack>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="dashboard" options={{ headerShown: false }} />
-        <Stack.Screen 
-          name="index" 
-          options={{ 
-            headerShown: false, 
-            title: "Home", 
-            animation: "none" 
+      <MenuProvider>
+        <StatusBar style="auto" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: Platform.OS === "ios" ? "default" : "none",
           }}
-        />
-      </Stack>
+        >
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="dashboard" />
+          <Stack.Screen
+            name="index"
+            options={{
+              title: "Home",
+            }}
+          />
+        </Stack>
+      </MenuProvider>
     </AlertNotificationRoot>
   );
 };

@@ -7,35 +7,42 @@ import {
   Dimensions,
   ActivityIndicator,
   SafeAreaView,
-  FlatList,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { useColorScheme } from "react-native";
 import { Colors } from "../../../../constants/Colors";
 import { applicantService } from "../../../../components/API/ApplicantService";
 import ThemedView from "../../../../components/ThemedForm/ThemedView";
-import ThemedCard from "../../../../components/ThemedForm/ThemedCard";
-import React, { useEffect, useState, useCallback } from "react";
+import ApplicantList from "../../../../components/ThemendList/ThemedApplicantList";
+import React, { useEffect, useState } from "react";
 
 const IndividualScreen = () => {
   const colorScheme = useColorScheme();
-  const widthTab = Dimensions.get("window").width / 4.4;
   const theme = Colors[colorScheme] ?? Colors.light;
+  const widthTab = Dimensions.get("window").width / 4.4;
+
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("new");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [applicants, setApplicants] = useState([]);
-  const [activeTab, setActiveTab] = useState("new");
+  const [expandedId, setExpandedId] = useState(null);
+  const [applicants, setApplicants] = useState({
+    new: [],
+    schedule: [],
+    approved: [],
+    disapproved: [],
+  });
   const [currentPage, setCurrentPage] = useState({
     new: 1,
     schedule: 1,
     approved: 1,
-    disapproved: 1
+    disapproved: 1,
   });
-
   const [totalPages, setTotalPages] = useState({
     new: 1,
     schedule: 1,
     approved: 1,
-    disapproved: 1
+    disapproved: 1,
   });
 
   const tabs = [
@@ -47,19 +54,19 @@ const IndividualScreen = () => {
 
   useEffect(() => {
     fetchData("new", 1);
+    return () => {
+      setApplicants({ new: [], schedule: [], approved: [], disapproved: [] });
+      setCurrentPage({ new: 1, schedule: 1, approved: 1, disapproved: 1 });
+    };
   }, []);
 
-
-  const fetchData = async (tabType, page = currentPage[tabType]) => {
+  const fetchData = async (tabType, page = 1) => {
     try {
-      setIsLoading(true);
-      let response;
+      page === 1 ? setIsLoading(true) : setIsLoadingMore(true);
       const params = { page };
+      let response;
 
       switch (tabType) {
-        case "new":
-          response = await applicantService.getApplicants(params);
-          break;
         case "schedule":
           response = await applicantService.getApplicantsSchedule(params);
           break;
@@ -74,92 +81,42 @@ const IndividualScreen = () => {
       }
 
       if (response.data) {
-        setApplicants(response.data);
-        setTotalPages(prev => ({
+        setApplicants((prev) => ({
           ...prev,
-          [tabType]: response.meta?.last_page || 1
+          [tabType]:
+            page === 1 ? response.data : [...prev[tabType], ...response.data],
         }));
+        setTotalPages((prev) => ({
+          ...prev,
+          [tabType]: response.meta?.last_page || 1,
+        }));
+        setCurrentPage((prev) => ({ ...prev, [tabType]: page }));
       }
     } catch (error) {
-      console.log("Error fetching data:", error);
+      console.error("Fetch Error:", error);
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
   };
 
-  const loadMoreData = useCallback(() => {
+  const loadMoreData = () => {
     const nextPage = currentPage[activeTab] + 1;
-    if (nextPage <= totalPages[activeTab] && !isLoadingMore) {
-      setIsLoadingMore(true);
-      setCurrentPage(prev => ({
-        ...prev,
-        [activeTab]: nextPage
-      }));
-      fetchMoreData(activeTab, nextPage);
-    }
-  }, [currentPage, totalPages, activeTab, isLoadingMore]);
-
-  const fetchMoreData = async (tabType, page) => {
-    try {
-      let response;
-      const params = { page };
-
-      switch (tabType) {
-        case "new":
-          response = await applicantService.getApplicants(params);
-          break;
-        case "schedule":
-          response = await applicantService.getApplicantsSchedule(params);
-          break;
-        case "approved":
-          response = await applicantService.getApproved(params);
-          break;
-        case "disapproved":
-          response = await applicantService.getRejected(params);
-          break;
-        default:
-          response = await applicantService.getApplicants(params);
-      }
-
-      if (response.data) {
-        setApplicants(prevApplicants => [...prevApplicants, ...response.data]);
-      }
-    } catch (error) {
-      console.log("Error loading more data:", error);
-    } finally {
-      setIsLoadingMore(false);
+    if (!isLoadingMore && nextPage <= totalPages[activeTab]) {
+      fetchData(activeTab, nextPage);
     }
   };
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
-    setApplicants([]);
-    setCurrentPage(prev => ({
-      ...prev,
-      [tabId]: 1
-    }));
+    setApplicants((prev) => ({ ...prev, [tabId]: [] }));
+    setCurrentPage((prev) => ({ ...prev, [tabId]: 1 }));
     fetchData(tabId, 1);
   };
 
-  const renderFooter = () => {
-    if (!isLoadingMore) return null;
-
+  if (isLoading && applicants[activeTab].length === 0) {
     return (
-      <View style={styles.footer}>
-        <ActivityIndicator size="small" color={theme.primary} />
-        <Text style={[styles.footerText, { color: theme.textLight }]}>
-          Loading more...
-        </Text>
-      </View>
-    );
-  };
-
-  if (isLoading && applicants.length === 0) {
-    return (
-      <SafeAreaView
-        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-      >
+      <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.primary} />
         <Text style={{ color: theme.textLight }}>Loading...</Text>
       </SafeAreaView>
@@ -167,10 +124,11 @@ const IndividualScreen = () => {
   }
 
   return (
-    <ThemedView style={styles.container} safe={true}>
+    <ThemedView style={styles.container}>
       <Text style={[styles.title, { color: theme.textLight }]}>
         Individual List
       </Text>
+
       <View style={styles.tabContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {tabs.map((tab) => (
@@ -179,16 +137,13 @@ const IndividualScreen = () => {
               onPress={() => handleTabChange(tab.id)}
               style={[
                 styles.tab,
-                activeTab === tab.id && styles.activeTab,
                 {
                   borderBottomColor:
                     activeTab === tab.id ? theme.blue : theme.border,
-                },
-                {
                   backgroundColor:
                     activeTab === tab.id ? theme.white : theme.backgroundColor,
+                  width: widthTab,
                 },
-                { width: widthTab },
               ]}
             >
               <Text
@@ -205,47 +160,32 @@ const IndividualScreen = () => {
         </ScrollView>
       </View>
 
-      <View style={styles.containerBody}>
-        <FlatList
-          data={applicants}
-          keyExtractor={(item, index) => `${item.id}-${index}`}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <TouchableOpacity>
-              <ThemedCard style={[styles.card, { backgroundColor: "#FBFDFF" }]}>
-                <Text style={styles.header}>
-                  {item.firstname} {item.middlename} {item.lastname}
-                </Text>
-              </ThemedCard>
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No applicants found</Text>
-          }
-          onEndReached={loadMoreData}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={renderFooter}
-        />
-      </View>
+      <ApplicantList
+        data={applicants[activeTab]}
+        theme={theme}
+        expandedId={expandedId}
+        onEndReached={loadMoreData}
+        isLoadingMore={isLoadingMore}
+        onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
+      />
     </ThemedView>
   );
 };
-
-export default IndividualScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
   },
-  containerBody: {
+  loadingContainer: {
     flex: 1,
-    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     fontSize: 17,
-    fontWeight: "medium",
-    marginVertical: 5,
+    fontWeight: "bold",
+    marginVertical: 10,
   },
   tabContainer: {
     alignItems: "center",
@@ -257,11 +197,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
   },
   tabText: {
-    fontSize: 15,
-    padding: 5,
+    fontSize: 13,
+    padding: 3,
+    fontWeight: "500",
   },
   activeTabText: {
     fontWeight: "bold",
+  },
+  header: {
+    fontWeight: "400",
+    fontSize: 12,
   },
   card: {
     width: "100%",
@@ -279,12 +224,28 @@ const styles = StyleSheet.create({
     color: "#8A94A6",
   },
   footer: {
-    flexDirection: "row",
-    justifyContent: "center",
+    paddingVertical: 20,
     alignItems: "center",
-    padding: 10,
+    justifyContent: "center",
   },
   footerText: {
     marginLeft: 10,
-  }
+  },
+  details: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: "#ccc",
+  },
+  detailText: {
+    marginVertical: 5,
+    fontSize: 11,
+  },
+  menuClick: {
+    padding: 10,
+  },
 });
+
+export default IndividualScreen;

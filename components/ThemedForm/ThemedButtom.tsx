@@ -1,7 +1,7 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
+import React from "react";
+import { TouchableOpacity, Text, StyleSheet, Dimensions } from "react-native";
 
-const windowWidth = Dimensions.get('window').width;
+const windowWidth = Dimensions.get("window").width;
 
 const CustomButton = ({ title, onPress, style, textStyle }) => {
   return (
@@ -19,18 +19,17 @@ export default CustomButton;
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#2680eb',
+    backgroundColor: "#2680eb",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    // width: '100$',
-    alignSelf: 'center',
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 14,
   },
 });

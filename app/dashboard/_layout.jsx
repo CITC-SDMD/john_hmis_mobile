@@ -1,11 +1,14 @@
+import {
+  DrawerContentScrollView,
+  DrawerItemList,
+} from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import { Colors } from "../../constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
-import { useColorScheme, View, StyleSheet } from "react-native";
-import { DrawerContentScrollView, DrawerItemList } from "@react-navigation/drawer";
-import { authService } from "../../components/API/AuthService";
 import { useUserStore } from "../../store/userStore";
+import { authService } from "../../components/API/AuthService";
+import { useColorScheme, View, StyleSheet } from "react-native";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import ThemedCustomButton from "../../components/ThemedForm/ThemedButtom";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -81,7 +84,7 @@ const DashboardLayout = () => {
         }}
       />
       <Drawer.Screen
-        name="applicants"
+        name="housing-applicants"
         options={{
           title: "Applicants",
           drawerLabel: "Applicants",

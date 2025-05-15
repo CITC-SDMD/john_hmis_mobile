@@ -11,33 +11,32 @@ export default function IndividualLayout() {
         headerLeft: () => (
           <Ionicons
             name="arrow-back"
+            color={"#2680eb"}
             size={24}
-            style={{ marginLeft: 10 }}
-            onPress={() => router.back()}
+            style={{ marginRight: 5 }}
+            onPress={() =>
+              router.push("/dashboard/housing-applicants/individual")
+            }
           />
         ),
       }}
     >
       <Stack.Screen
-        name="index"
+        name="application-form/[uuid]"
         options={{
-            headerShown: false,
-            title: "Individual Applicants",
+          headerShown: true,
+          title: "Application form",
+          headerTitleStyle: {
+            fontSize: 12,
+            fontWeight: 500,
+            color: "#2680eb",
+          },
         }}
       />
       <Stack.Screen
-        name="(create)/create"
+        name="index"
         options={{
-          presentation: "modal",
-          title: "Back",
-          headerLeft: () => (
-            <Ionicons
-              name="arrow-back"
-              size={20}
-              style={{  }}
-              onPress={() => router.push("/dashboard/applicants/individual")}
-            />
-          ),
+          headerShown: false,
         }}
       />
     </Stack>
