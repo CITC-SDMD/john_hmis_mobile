@@ -12,7 +12,7 @@ export default function IndividualLayout() {
           <Ionicons
             name="arrow-back"
             color={"#2680eb"}
-            size={24}
+            size={28}
             style={{ marginRight: 5 }}
             onPress={() =>
               router.push("/dashboard/housing-applicants/individual")
