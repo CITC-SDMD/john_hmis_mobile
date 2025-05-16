@@ -204,48 +204,6 @@ const styles = StyleSheet.create({
   activeTabText: {
     fontWeight: "bold",
   },
-  header: {
-    fontWeight: "400",
-    fontSize: 12,
-  },
-  card: {
-    width: "100%",
-    marginVertical: 10,
-    padding: 20,
-    paddingLeft: 14,
-    borderLeftColor: "#2680eb",
-    borderLeftWidth: 4,
-    borderRadius: 3,
-  },
-  emptyText: {
-    textAlign: "center",
-    padding: 20,
-    fontSize: 16,
-    color: "#8A94A6",
-  },
-  footer: {
-    paddingVertical: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  footerText: {
-    marginLeft: 10,
-  },
-  details: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: "#ccc",
-  },
-  detailText: {
-    marginVertical: 5,
-    fontSize: 11,
-  },
-  menuClick: {
-    padding: 10,
-  },
 });
 
 export default IndividualScreen;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   FlatList,
@@ -6,7 +6,7 @@ import {
   View,
   Text,
   ActivityIndicator,
-  Alert,
+  Modal,
 } from "react-native";
 import { format } from "date-fns";
 import { useRouter } from "expo-router";
@@ -21,51 +21,76 @@ const ApplicantList = ({
   isLoadingMore,
   onToggleExpand,
 }) => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const router = useRouter();
   const renderItem = ({ item }) => {
     const isExpanded = expandedId === item.id;
-    const router = useRouter();
-
     return (
-      <TouchableOpacity onPress={() => onToggleExpand(item.id)}>
-        <ThemedCard style={[styles.card, { backgroundColor: "#FBFDFF" }]}>
-          <Text style={styles.header}>
-            {item.firstname} {item.middlename} {item.lastname}
-          </Text>
+      <>
+        <TouchableOpacity onPress={() => onToggleExpand(item.id)}>
+          <ThemedCard style={[styles.card, { backgroundColor: "#FBFDFF" }]}>
+            <Text style={styles.header}>
+              {item.firstname} {item.middlename} {item.lastname}
+            </Text>
 
-          {isExpanded && (
-            <View style={styles.details}>
-              <View>
-                <Text style={styles.detailText}>
-                  Phone number: {item.phone_number || "N/A"}
-                </Text>
-                <Text style={styles.detailText}>
-                  Schedule:{" "}
-                  {item.schedule
-                    ? format(new Date(item.schedule), "MMMM dd, yyyy, h:mm a")
-                    : "N/A"}
-                </Text>
-                <Text style={styles.detailText}>
-                  Status: {item.status || "N/A"}
-                </Text>
-                <Text style={styles.detailText}>
-                  Reason: {item.reason || "N/A"}
-                </Text>
+            {isExpanded && (
+              <View style={styles.details}>
+                <View>
+                  <Text style={styles.detailText}>
+                    Phone number: {item.phone_number || "N/A"}
+                  </Text>
+                  <Text style={styles.detailText}>
+                    Schedule:{" "}
+                    {item.schedule
+                      ? format(new Date(item.schedule), "MMMM dd, yyyy, h:mm a")
+                      : "N/A"}
+                  </Text>
+                  <Text style={styles.detailText}>
+                    Status: {item.status || "N/A"}
+                  </Text>
+                  <Text style={styles.detailText}>
+                    Reason:{" "}
+                    {item.is_cancelled === true ? (
+                      <Text>Cancel Application</Text>
+                    ) : (
+                      <View
+                        style={{
+                          backgroundColor: "#2680eb",
+                          paddingLeft: 10,
+                          paddingRight: 10,
+                          borderRadius: 10,
+                          alignItems: "center",
+                        }}
+                      >
+                        <Text style={[styles.detailText, { color: "white" }]}>
+                          {" "}
+                          N/A
+                        </Text>
+                      </View>
+                    )}
+                  </Text>
+                </View>
+                <View>
+                  <ThemeIndividualMenu
+                    theme={theme}
+                    data={item}
+                    onForm={() =>
+                      router.push(
+                        `/dashboard/housing-applicants/individual/application-form/${item?.uuid}`
+                      )
+                    }
+                    onSchedule={() => {
+                      setSelectedItem(item);
+                      setIsModalVisible(true);
+                    }}
+                  />
+                </View>
               </View>
-              <View>
-                <ThemeIndividualMenu
-                  theme={theme}
-                  data={item}
-                  onForm={() =>
-                    router.push(
-                      `/dashboard/housing-applicants/individual/application-form/${item?.uuid}`
-                    )
-                  }
-                />
-              </View>
-            </View>
-          )}
-        </ThemedCard>
-      </TouchableOpacity>
+            )}
+          </ThemedCard>
+        </TouchableOpacity>
+      </>
     );
   };
 
@@ -92,6 +117,21 @@ const ApplicantList = ({
           ) : null
         }
       />
+      <Modal
+        visible={isModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {selectedItem && <Text>{selectedItem.uuid}</Text>}
+            <TouchableOpacity onPress={() => setIsModalVisible(false)}>
+              <Text>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -135,6 +175,19 @@ const styles = {
   },
   footerText: {
     marginLeft: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 8,
+    elevation: 5,
+    minWidth: 300,
   },
 };
 
