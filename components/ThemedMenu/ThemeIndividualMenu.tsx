@@ -11,7 +11,7 @@ import {
 const ThemeIndividualMenu = ({
   label = "Options",
   onForm = () => {},
-  onApplication = () => {},
+  onCancelApplication = () => {},
   onSchedule = () => {},
   onDelete = () => {},
   theme,
@@ -63,7 +63,7 @@ const ThemeIndividualMenu = ({
           <Text style={styles.optionText}>Set schedule</Text>
         </MenuOption>
         {data.schedule && (
-          <MenuOption style={styles.contentflex} onSelect={onApplication}>
+          <MenuOption style={styles.contentflex} onSelect={onCancelApplication}>
             <Ionicons name="calendar-outline" color={"#2680eb"} size={20} />
             <Text style={styles.optionText}>Cancel application</Text>
           </MenuOption>

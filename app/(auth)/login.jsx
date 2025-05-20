@@ -16,7 +16,7 @@ import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ThemedView from "../../components/ThemedForm/ThemedView";
 import ThemedInputField from "../../components/ThemedForm/ThemedInputField";
-import ThemedCustomButton from "../../components/ThemedForm/ThemedButtom";
+import ThemedCustomButton from "../../components/ThemedForm/ThemedButton";
 import ThemedError from "../../components/ThemedForm/ThemedError";
 import logo from "../../assets/davao_logo.png";
 import dcho from "../../assets/dcho.png";

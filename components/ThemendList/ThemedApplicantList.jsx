@@ -7,11 +7,19 @@ import {
   Text,
   ActivityIndicator,
   Modal,
+  TextInput,
 } from "react-native";
 import { format } from "date-fns";
 import { useRouter } from "expo-router";
+import { FontAwesome6 } from "@expo/vector-icons";
+import { ALERT_TYPE, Toast } from "react-native-alert-notification";
+import { applicantSchedulesService } from "../../components/API/ApplicantSchedulesService";
+import { applicantService } from "../../components/API/ApplicantService";
 import ThemedCard from "../../components/ThemedForm/ThemedCard";
+import ThemedButton from "../../components/ThemedForm/ThemedButton";
+import ThemedDateTimePicker from "../../components/ThemedForm/ThemedDateTimePicker";
 import ThemeIndividualMenu from "../../components/ThemedMenu/ThemeIndividualMenu";
+import ThemedLabel from "../../components/ThemedForm/ThemedLabel";
 
 const ApplicantList = ({
   data,
@@ -20,10 +28,124 @@ const ApplicantList = ({
   onEndReached,
   isLoadingMore,
   onToggleExpand,
+  onDataChanged,
+  isLoading,
+  setIsLoading,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [dateTime, setDateTime] = useState(null);
+  const [showPicker, setShowPicker] = useState(false);
   const router = useRouter();
+
+  const showPickerHnadler = () => setShowPicker(true);
+  const hidePickerHnadler = () => setShowPicker(false);
+
+  const handleDateChange = (selectDate) => {
+    setDateTime(selectDate);
+    hidePickerHnadler();
+  };
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      const params = {
+        schedule: format(dateTime, "yyyy-MM-dd HH:mm:ss"),
+      };
+      const response = await applicantSchedulesService.saveApplicantSchedules(
+        selectedItem.uuid,
+        params
+      );
+      if (response.data) {
+        setIsModalVisible(false);
+        setSelectedItem(null);
+        onToggleExpand(null);
+        if (typeof onDataChanged === "function") {
+          onDataChanged();
+        }
+        successAlert(
+          "Create Successful",
+          "You have been successfully created a schedule",
+          ALERT_TYPE.SUCCESS
+        );
+      }
+    } catch (error) {
+      console.log("error submit", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteApplication = async (item) => {
+    try {
+      setIsLoading(true);
+      const response = await applicantService.deleteApplicant(item.uuid);
+      if (response.message) {
+        if (typeof onDataChanged === "function") {
+          onDataChanged();
+        }
+        successAlert(
+          "Delete Successful",
+          "You have been successfully delete a application",
+          ALERT_TYPE.DANGER
+        );
+      }
+    } catch (error) {
+      console.log("error delete", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelApplicaition = async (item) => {
+    try {
+      setIsLoading(true);
+      const response = await applicantSchedulesService.cancelApplicantSchedules(
+        item.uuid
+      );
+      if (response.data) {
+        if (typeof onDataChanged === "function") {
+          onDataChanged();
+        }
+        successAlert(
+          "Cancel Successful",
+          "You have been successfully cancel a application",
+          ALERT_TYPE.WARNING
+        );
+      }
+    } catch (error) {
+      console.log("error cancel", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  function successAlert(title, message, type) {
+    Toast.show({
+      title: title,
+      textBody: message,
+      type: type,
+    });
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Text style={{ color: theme.textLight }}>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const resetModalStates = () => {
+    setIsModalVisible(false);
+    setDateTime(null);
+    setSelectedItem(null);
+    setShowPicker(false);
+  };
+
   const renderItem = ({ item }) => {
     const isExpanded = expandedId === item.id;
     return (
@@ -54,20 +176,7 @@ const ApplicantList = ({
                     {item.is_cancelled === true ? (
                       <Text>Cancel Application</Text>
                     ) : (
-                      <View
-                        style={{
-                          backgroundColor: "#2680eb",
-                          paddingLeft: 10,
-                          paddingRight: 10,
-                          borderRadius: 10,
-                          alignItems: "center",
-                        }}
-                      >
-                        <Text style={[styles.detailText, { color: "white" }]}>
-                          {" "}
-                          N/A
-                        </Text>
-                      </View>
+                      <Text style={styles.detailText}> N/A</Text>
                     )}
                   </Text>
                 </View>
@@ -84,6 +193,8 @@ const ApplicantList = ({
                       setSelectedItem(item);
                       setIsModalVisible(true);
                     }}
+                    onDelete={() => handleDeleteApplication(item)}
+                    onCancelApplication={() => handleCancelApplicaition(item)}
                   />
                 </View>
               </View>
@@ -98,7 +209,7 @@ const ApplicantList = ({
     <SafeAreaView>
       <FlatList
         data={data}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
+        keyExtractor={(item) => `${item.uuid}`}
         contentContainerStyle={{ paddingBottom: 100 }}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.1}
@@ -121,14 +232,49 @@ const ApplicantList = ({
         visible={isModalVisible}
         animationType="fade"
         transparent={true}
-        onRequestClose={() => setIsModalVisible(false)}
+        onRequestClose={() => resetModalStates()}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            {selectedItem && <Text>{selectedItem.uuid}</Text>}
-            <TouchableOpacity onPress={() => setIsModalVisible(false)}>
-              <Text>Close</Text>
-            </TouchableOpacity>
+            <View style={styles.modalFlex}>
+              <ThemedLabel label="Add Schedule" required={true} />
+              <TouchableOpacity onPress={resetModalStates}>
+                <FontAwesome6 size={20} name="xmark" color={"#2680eb"} />
+              </TouchableOpacity>
+            </View>
+            <View>
+              <TouchableOpacity onPress={showPickerHnadler}>
+                <View style={styles.inputContainer}>
+                  <FontAwesome6
+                    name="calendar"
+                    size={18}
+                    color="#2680eb"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.inputWithIcon}
+                    value={
+                      dateTime ? format(dateTime, "MMMM dd, yyyy, h:mm a") : ""
+                    }
+                    editable={false}
+                    pointerEvents="none"
+                    placeholder="Select date and time"
+                    placeholderTextColor="#A0AEC0"
+                  />
+                </View>
+              </TouchableOpacity>
+              <ThemedDateTimePicker
+                date={dateTime || new Date()}
+                handleConfirm={handleDateChange}
+                hidePicker={hidePickerHnadler}
+                isPickerVisible={showPicker}
+              />
+              <ThemedButton
+                title={"Submit"}
+                style={{ width: 400, marginTop: 10 }}
+                onPress={handleSubmit}
+              />
+            </View>
           </View>
         </View>
       </Modal>
@@ -187,7 +333,40 @@ const styles = {
     padding: 20,
     borderRadius: 8,
     elevation: 5,
-    minWidth: 300,
+    minWidth: 400,
+  },
+  modalFlex: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  input: {
+    height: 40,
+    borderColor: "#2680eb",
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    marginTop: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 5,
+  },
+
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderColor: "#2680eb",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginTop: 10,
+    paddingHorizontal: 10,
+    height: 40,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  inputWithIcon: {
+    flex: 1,
+    padding: 0, // Remove default padding
+    color: "#2D3748",
   },
 };
 

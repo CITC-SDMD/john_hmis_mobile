@@ -10,7 +10,7 @@ import { useUserStore } from "../../store/userStore";
 import { authService } from "../../components/API/AuthService";
 import { useColorScheme, View, StyleSheet } from "react-native";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
-import ThemedCustomButton from "../../components/ThemedForm/ThemedButtom";
+import ThemedCustomButton from "../../components/ThemedForm/ThemedButton";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const CustomDrawerContent = (props) => {

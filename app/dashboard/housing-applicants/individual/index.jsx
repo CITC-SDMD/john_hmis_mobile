@@ -14,14 +14,12 @@ import { Colors } from "../../../../constants/Colors";
 import { applicantService } from "../../../../components/API/ApplicantService";
 import ThemedView from "../../../../components/ThemedForm/ThemedView";
 import ApplicantList from "../../../../components/ThemendList/ThemedApplicantList";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 const IndividualScreen = () => {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
   const widthTab = Dimensions.get("window").width / 4.4;
-
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState("new");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -45,6 +43,8 @@ const IndividualScreen = () => {
     disapproved: 1,
   });
 
+  const pendingRequests = useRef(new Set());
+
   const tabs = [
     { id: "new", label: "New" },
     { id: "schedule", label: "Schedule" },
@@ -55,12 +55,24 @@ const IndividualScreen = () => {
   useEffect(() => {
     fetchData("new", 1);
     return () => {
-      setApplicants({ new: [], schedule: [], approved: [], disapproved: [] });
-      setCurrentPage({ new: 1, schedule: 1, approved: 1, disapproved: 1 });
+      pendingRequests.current.forEach((controller) => controller.abort());
+      pendingRequests.current.clear();
     };
   }, []);
 
   const fetchData = async (tabType, page = 1) => {
+    const existingRequest = Array.from(pendingRequests.current).find(
+      (req) => req.tabType === tabType
+    );
+    if (existingRequest) {
+      existingRequest.controller.abort();
+      pendingRequests.current.delete(existingRequest);
+    }
+
+    const controller = new AbortController();
+    const requestId = { tabType, controller };
+    pendingRequests.current.add(requestId);
+
     try {
       page === 1 ? setIsLoading(true) : setIsLoadingMore(true);
       const params = { page };
@@ -93,24 +105,19 @@ const IndividualScreen = () => {
         setCurrentPage((prev) => ({ ...prev, [tabType]: page }));
       }
     } catch (error) {
-      console.error("Fetch Error:", error);
+      if (error.name !== "AbortError") {
+        console.error("Fetch Error:", error);
+      }
     } finally {
+      pendingRequests.current.delete(requestId);
       setIsLoading(false);
       setIsLoadingMore(false);
     }
   };
 
-  const loadMoreData = () => {
-    const nextPage = currentPage[activeTab] + 1;
-    if (!isLoadingMore && nextPage <= totalPages[activeTab]) {
-      fetchData(activeTab, nextPage);
-    }
-  };
-
   const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
     setApplicants((prev) => ({ ...prev, [tabId]: [] }));
-    setCurrentPage((prev) => ({ ...prev, [tabId]: 1 }));
+    setActiveTab(tabId);
     fetchData(tabId, 1);
   };
 
@@ -164,9 +171,17 @@ const IndividualScreen = () => {
         data={applicants[activeTab]}
         theme={theme}
         expandedId={expandedId}
-        onEndReached={loadMoreData}
+        onEndReached={() => {
+          const nextPage = currentPage[activeTab] + 1;
+          if (!isLoadingMore && nextPage <= totalPages[activeTab]) {
+            fetchData(activeTab, nextPage);
+          }
+        }}
         isLoadingMore={isLoadingMore}
         onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
+        onDataChanged={() => fetchData(activeTab, 1)}
+        setIsLoading={setIsLoading}
+        isLoading={isLoading}
       />
     </ThemedView>
   );
