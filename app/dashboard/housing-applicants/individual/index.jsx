@@ -61,6 +61,7 @@ const IndividualScreen = () => {
   }, []);
 
   const fetchData = async (tabType, page = 1) => {
+    setExpandedId(null);
     const existingRequest = Array.from(pendingRequests.current).find(
       (req) => req.tabType === tabType
     );

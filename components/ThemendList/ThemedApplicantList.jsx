@@ -12,6 +12,7 @@ import {
 import { format } from "date-fns";
 import { useRouter } from "expo-router";
 import { FontAwesome6 } from "@expo/vector-icons";
+import ThemedError from "../../components/ThemedForm/ThemedError";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import { applicantSchedulesService } from "../../components/API/ApplicantSchedulesService";
 import { applicantService } from "../../components/API/ApplicantService";
@@ -34,31 +35,32 @@ const ApplicantList = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [dateTime, setDateTime] = useState(null);
+  const [schedule, setSchedule] = useState(null);
   const [showPicker, setShowPicker] = useState(false);
+  const [errors, setErrors] = useState({});
   const router = useRouter();
 
   const showPickerHnadler = () => setShowPicker(true);
   const hidePickerHnadler = () => setShowPicker(false);
 
   const handleDateChange = (selectDate) => {
-    setDateTime(selectDate);
+    setSchedule(selectDate);
     hidePickerHnadler();
   };
 
   const handleSubmit = async () => {
     setIsLoading(true);
+    setErrors({});
     try {
       const params = {
-        schedule: format(dateTime, "yyyy-MM-dd HH:mm:ss"),
+        schedule: schedule ? format(schedule, "yyyy-MM-dd HH:mm:ss") : null,
       };
       const response = await applicantSchedulesService.saveApplicantSchedules(
         selectedItem.uuid,
         params
       );
       if (response.data) {
-        setIsModalVisible(false);
-        setSelectedItem(null);
+        resetModalStates();
         onToggleExpand(null);
         if (typeof onDataChanged === "function") {
           onDataChanged();
@@ -71,6 +73,7 @@ const ApplicantList = ({
       }
     } catch (error) {
       console.log("error submit", error);
+      setErrors(error);
     } finally {
       setIsLoading(false);
     }
@@ -141,9 +144,10 @@ const ApplicantList = ({
 
   const resetModalStates = () => {
     setIsModalVisible(false);
-    setDateTime(null);
+    setSchedule(null);
     setSelectedItem(null);
     setShowPicker(false);
+    setErrors({});
   };
 
   const renderItem = ({ item }) => {
@@ -162,40 +166,85 @@ const ApplicantList = ({
                   <Text style={styles.detailText}>
                     Phone number: {item.phone_number || "N/A"}
                   </Text>
-                  <Text style={styles.detailText}>
-                    Schedule:{" "}
-                    {item.schedule
-                      ? format(new Date(item.schedule), "MMMM dd, yyyy, h:mm a")
-                      : "N/A"}
-                  </Text>
-                  <Text style={styles.detailText}>
-                    Status: {item.status || "N/A"}
-                  </Text>
-                  <Text style={styles.detailText}>
-                    Reason:{" "}
-                    {item.is_cancelled === true ? (
-                      <Text>Cancel Application</Text>
+
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Text style={styles.detailText}>Schedule: </Text>
+                    <Text style={styles.detailText}>
+                      {item.schedule ? (
+                        format(new Date(item.schedule), "MMMM dd, yyyy, h:mm a")
+                      ) : (
+                        <View style={styles.iconFlex}>
+                          <View style={styles.iconPending} />
+                          <Text style={styles.detailText}>Pending</Text>
+                        </View>
+                      )}
+                    </Text>
+                  </View>
+
+                  <View style={{ flexDirection: "row" }}>
+                    <Text style={styles.detailText}>Status:</Text>
+                    {item?.application?.is_approved === true ? (
+                      <View style={styles.iconFlex}>
+                        <View style={styles.iconGreen} />
+                        <Text style={styles.detailText}>Approved</Text>
+                      </View>
+                    ) : item?.application?.is_approved === false ? (
+                      <View style={styles.iconFlex}>
+                        <View style={styles.iconCancel} />
+                        <Text style={styles.detailText}>Disapproved</Text>
+                      </View>
                     ) : (
-                      <Text style={styles.detailText}> N/A</Text>
+                      <View style={styles.iconFlex}>
+                        <View style={styles.iconPending} />
+                        <Text style={styles.detailText}>Pending</Text>
+                      </View>
                     )}
-                  </Text>
+                  </View>
+
+                  <View>
+                    {item?.application?.is_approved === true ? (
+                      <View />
+                    ) : (
+                      <View style={{ flexDirection: "row" }}>
+                        <Text style={styles.detailText}>Reason:</Text>
+
+                        {item.is_cancelled === true ? (
+                          <View style={styles.iconFlex}>
+                            <View style={styles.iconCancel} />
+                            <Text style={styles.detailText}>
+                              Cancel Application
+                            </Text>
+                          </View>
+                        ) : (
+                          <View style={styles.iconFlex}>
+                            <View style={styles.iconPending} />
+                            <Text style={styles.detailText}>Pending</Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                  </View>
                 </View>
                 <View>
-                  <ThemeIndividualMenu
-                    theme={theme}
-                    data={item}
-                    onForm={() =>
-                      router.push(
-                        `/dashboard/housing-applicants/individual/application-form/${item?.uuid}`
-                      )
-                    }
-                    onSchedule={() => {
-                      setSelectedItem(item);
-                      setIsModalVisible(true);
-                    }}
-                    onDelete={() => handleDeleteApplication(item)}
-                    onCancelApplication={() => handleCancelApplicaition(item)}
-                  />
+                  {item?.application?.is_approved === true ? (
+                    <View />
+                  ) : (
+                    <ThemeIndividualMenu
+                      theme={theme}
+                      data={item}
+                      onForm={() =>
+                        router.push(
+                          `/dashboard/housing-applicants/individual/application-form/${item?.uuid}`
+                        )
+                      }
+                      onSchedule={() => {
+                        setSelectedItem(item);
+                        setIsModalVisible(true);
+                      }}
+                      onDelete={() => handleDeleteApplication(item)}
+                      onCancelApplication={() => handleCancelApplicaition(item)}
+                    />
+                  )}
                 </View>
               </View>
             )}
@@ -254,7 +303,7 @@ const ApplicantList = ({
                   <TextInput
                     style={styles.inputWithIcon}
                     value={
-                      dateTime ? format(dateTime, "MMMM dd, yyyy, h:mm a") : ""
+                      schedule ? format(schedule, "MMMM dd, yyyy, h:mm a") : ""
                     }
                     editable={false}
                     pointerEvents="none"
@@ -264,11 +313,12 @@ const ApplicantList = ({
                 </View>
               </TouchableOpacity>
               <ThemedDateTimePicker
-                date={dateTime || new Date()}
+                date={schedule || new Date()}
                 handleConfirm={handleDateChange}
                 hidePicker={hidePickerHnadler}
                 isPickerVisible={showPicker}
               />
+              <ThemedError error={errors?.errors?.schedule?.[0]} />
               <ThemedButton
                 title={"Submit"}
                 style={{ width: 400, marginTop: 10 }}
@@ -359,14 +409,42 @@ const styles = {
     marginTop: 10,
     paddingHorizontal: 10,
     height: 40,
+    marginBottom: 10,
   },
   inputIcon: {
     marginRight: 10,
   },
   inputWithIcon: {
     flex: 1,
-    padding: 0, // Remove default padding
+    padding: 0,
     color: "#2D3748",
+  },
+
+  iconPending: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#f59e0b",
+    marginRight: 3,
+  },
+  iconGreen: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#22c55e",
+    marginRight: 3,
+  },
+  iconCancel: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#ef4444",
+    marginRight: 3,
+  },
+  iconFlex: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 4,
   },
 };
 
