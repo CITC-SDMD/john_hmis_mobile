@@ -21,6 +21,7 @@ const IndividualScreen = () => {
   const theme = Colors[colorScheme] ?? Colors.light;
   const widthTab = Dimensions.get("window").width / 4.4;
   const [activeTab, setActiveTab] = useState("new");
+  const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
@@ -59,6 +60,13 @@ const IndividualScreen = () => {
       pendingRequests.current.clear();
     };
   }, []);
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    if (applicants[tabId].length === 0) {
+      fetchData(tabId, 1);
+    }
+  };
 
   const fetchData = async (tabType, page = 1) => {
     setExpandedId(null);
@@ -107,19 +115,13 @@ const IndividualScreen = () => {
       }
     } catch (error) {
       if (error.name !== "AbortError") {
-        console.error("Fetch Error:", error);
       }
+      setErrors(error);
     } finally {
       pendingRequests.current.delete(requestId);
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  };
-
-  const handleTabChange = (tabId) => {
-    setApplicants((prev) => ({ ...prev, [tabId]: [] }));
-    setActiveTab(tabId);
-    fetchData(tabId, 1);
   };
 
   if (isLoading && applicants[activeTab].length === 0) {
@@ -138,34 +140,32 @@ const IndividualScreen = () => {
       </Text>
 
       <View style={styles.tabContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              onPress={() => handleTabChange(tab.id)}
+        {tabs.map((tab) => (
+          <TouchableOpacity
+            key={tab.id}
+            onPress={() => handleTabChange(tab.id)}
+            style={[
+              styles.tab,
+              {
+                borderBottomColor:
+                  activeTab === tab.id ? theme.blue : theme.border,
+                backgroundColor:
+                  activeTab === tab.id ? theme.white : theme.backgroundColor,
+                width: widthTab,
+              },
+            ]}
+          >
+            <Text
               style={[
-                styles.tab,
-                {
-                  borderBottomColor:
-                    activeTab === tab.id ? theme.blue : theme.border,
-                  backgroundColor:
-                    activeTab === tab.id ? theme.white : theme.backgroundColor,
-                  width: widthTab,
-                },
+                styles.tabText,
+                activeTab === tab.id && styles.activeTabText,
+                { color: activeTab === tab.id ? theme.blue : theme.text },
               ]}
             >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === tab.id && styles.activeTabText,
-                  { color: activeTab === tab.id ? theme.blue : theme.text },
-                ]}
-              >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <ApplicantList
@@ -204,6 +204,8 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   tabContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 15,
   },

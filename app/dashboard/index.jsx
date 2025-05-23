@@ -11,6 +11,7 @@ import { Colors } from "../../constants/Colors";
 import { agencyService } from "../../components/API/AgencyService";
 import { applicantService } from "../../components/API/ApplicantService";
 import { beneficiaryService } from "../../components/API/BeneficiaryService";
+import ThemedAppointmentList from "../../components/ThemendList/ThemedAppointmentList";
 import ThemedView from "../../components/ThemedForm/ThemedView";
 import Icon from "react-native-vector-icons/FontAwesome5";
 
@@ -103,40 +104,48 @@ const index = () => {
 
   return (
     <ThemedView style={styles.container} safe={true}>
-      {infoBoxes.map((item, index) => (
-        <View
-          key={index}
-          style={[styles.card, { backgroundColor: theme.backgroundColor }]}
-        >
-          <View style={styles.cardContent}>
-            <Icon
-              name={item.icon}
-              size={20}
-              color={theme.white}
-              padding={10}
-              backgroundColor={"#007bff"}
-              borderRadius={5}
-            />
-            <View style={styles.textContainer}>
-              <Text style={[styles.label, { color: theme.text }]}>
-                {item.label}
-              </Text>
-              <Text style={styles.value}>{item.value}</Text>
+      <View style={styles.body}>
+        {infoBoxes.map((item, index) => (
+          <View
+            key={index}
+            style={[styles.card, { backgroundColor: theme.backgroundColor }]}
+          >
+            <View style={styles.cardContent}>
+              <Icon
+                name={item.icon}
+                size={20}
+                color={theme.white}
+                padding={10}
+                backgroundColor={"#007bff"}
+                borderRadius={5}
+              />
+              <View style={styles.textContainer}>
+                <Text style={[styles.label, { color: theme.text }]}>
+                  {item.label}
+                </Text>
+                <Text style={styles.value}>{item.value}</Text>
+              </View>
             </View>
           </View>
-        </View>
-      ))}
+        ))}
+      </View>
+      <View style={{ marginTop: 20 }}>
+        <Text style={styles.detailText}>List of current schedule</Text>
+        <ThemedAppointmentList />
+      </View>
     </ThemedView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    padding: 10,
+    flex: 1,
+  },
+  body: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    padding: 10,
-    flex: 1,
   },
   card: {
     width: "48%",
@@ -144,6 +153,11 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 10,
     elevation: 5,
+  },
+  detailText: {
+    marginVertical: 5,
+    fontSize: 15,
+    fontWeight: "medium",
   },
   cardContent: {
     flexDirection: "row",

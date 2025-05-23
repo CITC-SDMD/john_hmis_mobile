@@ -30,9 +30,9 @@ const Home = () => {
           <Text style={styles.heading}>HMIS</Text>
           <Text style={styles.subheading}>Mobile App</Text>
           {isLoading && (
-            <ActivityIndicator 
-              size="large" 
-              color="#fff" 
+            <ActivityIndicator
+              size="large"
+              color="#fff"
               style={styles.loader}
             />
           )}

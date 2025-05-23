@@ -20,31 +20,35 @@ import ThemedCustomButton from "../../components/ThemedForm/ThemedButton";
 import ThemedError from "../../components/ThemedForm/ThemedError";
 import logo from "../../assets/davao_logo.png";
 import dcho from "../../assets/dcho.png";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-const LoginForm = () => {
+export default function Login() {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
+  const windowWidth = Dimensions.get("window").width;
   const router = useRouter();
+
   const setUser = useUserStore((state) => state.setUser);
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
   const [errors, setErrors] = useState({});
-  const windowWidth = Dimensions.get("window").width;
 
   const submitLogin = async () => {
     try {
       const params = {
-        email: "citc@admin.com",
-        password: "password",
+        email: form.email,
+        password: form.password,
       };
       const response = await authService.login(params);
       if (response.data) {
         await AsyncStorage.setItem("_token", response.data.token);
+        const token = response.data.token;
+        saveTokenToDB(token);
         setUser(response.data.user);
         setErrors({});
+
         router.replace("/dashboard");
         successAlert(
           "Login Successful",
@@ -81,7 +85,7 @@ const LoginForm = () => {
         <View style={styles.inputContainer}>
           <ThemedInputField
             style={{ width: windowWidth - 40 }}
-            value={"citc@admin.com"}
+            value={form.email}
             onChangeText={(text) => setForm({ ...form, email: text })}
             label="Email address"
           />
@@ -91,7 +95,7 @@ const LoginForm = () => {
         <View style={styles.inputContainer}>
           <ThemedInputField
             style={{ width: windowWidth - 40 }}
-            value={"password"}
+            value={form.password}
             onChangeText={(text) => setForm({ ...form, password: text })}
             secureTextEntry={true}
             label="Password"
@@ -118,9 +122,7 @@ const LoginForm = () => {
       </ThemedView>
     </TouchableWithoutFeedback>
   );
-};
-
-export default LoginForm;
+}
 
 const styles = StyleSheet.create({
   container: {

@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
+  RefreshControl,
 } from "react-native";
 import { format } from "date-fns";
 import { useRouter } from "expo-router";
@@ -258,18 +259,24 @@ const ApplicantList = ({
     <SafeAreaView>
       <FlatList
         data={data}
-        keyExtractor={(item) => `${item.uuid}`}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id?.toString()}
         contentContainerStyle={{ paddingBottom: 100 }}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.1}
-        renderItem={renderItem}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={() => onDataChanged()}
+          />
+        }
         ListEmptyComponent={
           <Text style={styles.emptyText}>No applicants found</Text>
         }
         ListFooterComponent={
           isLoadingMore ? (
             <View style={styles.footer}>
-              <ActivityIndicator size="large" color={theme.primary} />
+              <ActivityIndicator size="small" color={theme.primary} />
               <Text style={[styles.footerText, { color: theme.textLight }]}>
                 Loading more...
               </Text>
