@@ -23,7 +23,7 @@ import dcho from "../../assets/dcho.png";
 import React, { useEffect, useState } from "react";
 import * as SQLite from 'expo-sqlite';
 
-const db = SQLite.openDatabaseSync('user.db');
+let db = null;
 
 export default function Login() {
   const colorScheme = useColorScheme();
@@ -37,44 +37,86 @@ export default function Login() {
     password: "",
   });
   const [errors, setErrors] = useState([]);
+  const [isDbInitialized, setIsDbInitialized] = useState(false);
+
 
   useEffect(() => {
     initializeDatabase();
-    checkExistingToken();
   }, []);
+
+  useEffect(() => {
+    if (isDbInitialized) {
+      checkExistingToken();
+    }
+  }, [isDbInitialized]);
+
 
   const initializeDatabase = async () => {
     try {
-      // Create table if it doesn't exist
+      if (!db) {
+        db = await SQLite.openDatabaseAsync('user.db');
+      }
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS user (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           token TEXT NOT NULL
         );
       `);
+
+      setIsDbInitialized(true);
+      console.log('Database initialized successfully');
     } catch (error) {
       console.error('Error initializing database:', error);
+      checkAsyncStorageToken();
+    }
+  };
+
+  const checkAsyncStorageToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem("_token");
+      if (token) {
+        router.replace("/dashboard");
+      }
+    } catch (error) {
+      console.error('Error checking AsyncStorage token:', error);
     }
   };
 
   const checkExistingToken = async () => {
     try {
-      const result = await db.getFirstAsync('SELECT token FROM user LIMIT 1');
+      if (!db) {
+        console.log('Database not initialized, checking AsyncStorage');
+        await checkAsyncStorageToken();
+        return;
+      }
+
+      const result = await db.getFirstAsync('SELECT token FROM user ORDER BY id DESC LIMIT 1');
+      console.log('Database result:', result);
+
       if (result && result.token) {
         await AsyncStorage.setItem("_token", result.token);
         router.replace("/dashboard");
+      } else {
+        await checkAsyncStorageToken();
       }
     } catch (error) {
       console.error('Error checking existing token:', error);
+      await checkAsyncStorageToken();
     }
   };
 
   const saveTokenToDB = async (token) => {
     try {
+      if (!db) {
+        console.log('Database not available, skipping DB save');
+        return;
+      }
+
       // Clear existing tokens first
       await db.runAsync('DELETE FROM user');
       // Insert new token
       await db.runAsync('INSERT INTO user (token) VALUES (?)', [token]);
+      console.log('Token saved to database successfully');
     } catch (error) {
       console.error('Error saving token to database:', error);
     }
@@ -93,7 +135,7 @@ export default function Login() {
         await AsyncStorage.setItem("_token", token);
         await saveTokenToDB(token);
 
-        console.log(token)
+        console.log('Token saved:', token);
         setUser(response.data.user);
         setErrors({});
 
