@@ -12,14 +12,18 @@ import { useColorScheme, View, StyleSheet } from "react-native";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import ThemedCustomButton from "../../components/ThemedForm/ThemedButton";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SQLite from 'expo-sqlite';
+
+const db = SQLite.openDatabaseSync('user.db');
 
 const CustomDrawerContent = (props) => {
   const resetUser = useUserStore((state) => state.resetUser);
   async function handleLogout() {
     try {
       const response = await authService.logout();
-      if (response) {
+      if (response.message) {
         AsyncStorage.removeItem("_token");
+        await db.runAsync('DELETE FROM user');
         resetUser();
         successAlert(
           "Logout Successful",

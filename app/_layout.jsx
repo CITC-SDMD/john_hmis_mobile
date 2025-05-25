@@ -2,7 +2,6 @@ import { StatusBar, Platform } from "react-native";
 import { MenuProvider } from "react-native-popup-menu";
 import { AlertNotificationRoot } from "react-native-alert-notification";
 import { Stack } from "expo-router";
-import React from "react";
 
 const RootLayout = () => {
   return (

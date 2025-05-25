@@ -21,6 +21,9 @@ import ThemedError from "../../components/ThemedForm/ThemedError";
 import logo from "../../assets/davao_logo.png";
 import dcho from "../../assets/dcho.png";
 import React, { useEffect, useState } from "react";
+import * as SQLite from 'expo-sqlite';
+
+const db = SQLite.openDatabaseSync('user.db');
 
 export default function Login() {
   const colorScheme = useColorScheme();
@@ -33,19 +36,63 @@ export default function Login() {
     email: "",
     password: "",
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState([]);
+
+  useEffect(() => {
+    initializeDatabase();
+    checkExistingToken();
+  }, []);
+
+  const initializeDatabase = async () => {
+    try {
+      // Create table if it doesn't exist
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS user (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          token TEXT NOT NULL
+        );
+      `);
+    } catch (error) {
+      console.error('Error initializing database:', error);
+    }
+  };
+
+  const checkExistingToken = async () => {
+    try {
+      const result = await db.getFirstAsync('SELECT token FROM user LIMIT 1');
+      if (result && result.token) {
+        await AsyncStorage.setItem("_token", result.token);
+        router.replace("/dashboard");
+      }
+    } catch (error) {
+      console.error('Error checking existing token:', error);
+    }
+  };
+
+  const saveTokenToDB = async (token) => {
+    try {
+      // Clear existing tokens first
+      await db.runAsync('DELETE FROM user');
+      // Insert new token
+      await db.runAsync('INSERT INTO user (token) VALUES (?)', [token]);
+    } catch (error) {
+      console.error('Error saving token to database:', error);
+    }
+  };
 
   const submitLogin = async () => {
     try {
       const params = {
-        email: form.email,
+        email: form.email.trim(),
         password: form.password,
       };
       const response = await authService.login(params);
       if (response.data) {
-        await AsyncStorage.setItem("_token", response.data.token);
-        const token = response.data.token;
-        saveTokenToDB(token);
+
+        const token = response.data.token
+        await AsyncStorage.setItem("_token", token);
+        await saveTokenToDB(token);
+        console.log(token)
         setUser(response.data.user);
         setErrors({});
 
