@@ -18,24 +18,33 @@ const db = SQLite.openDatabaseSync('user.db');
 
 const CustomDrawerContent = (props) => {
   const resetUser = useUserStore((state) => state.resetUser);
+
   async function handleLogout() {
     try {
-      const response = await authService.logout();
-      if (response.message) {
-        AsyncStorage.removeItem("_token");
-        await db.runAsync('DELETE FROM user');
-        resetUser();
-        successAlert(
-          "Logout Successful",
-          "You have been successfully logged out",
-          ALERT_TYPE.SUCCESS
-        );
-        router.replace("/login");
+      try {
+        const response = await authService.logout();
+        if (response) {
+          console.log(response)
+        }
+      } catch (error) {
+        console.warn("Logout API failed:", error);
       }
+
+      await AsyncStorage.removeItem("_token");
+      await db.runAsync('DELETE FROM user');
+      resetUser();
+
+      successAlert(
+        "Logout Successful",
+        "You have been successfully logged out",
+        ALERT_TYPE.SUCCESS
+      );
+      router.replace("/login");
     } catch (error) {
-      console.log("Logout error:", error);
+      console.error("Logout error:", error);
     }
   }
+
 
   function successAlert(title, message, type) {
     Toast.show({

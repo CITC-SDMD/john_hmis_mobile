@@ -92,6 +92,7 @@ export default function Login() {
         const token = response.data.token
         await AsyncStorage.setItem("_token", token);
         await saveTokenToDB(token);
+
         console.log(token)
         setUser(response.data.user);
         setErrors({});
@@ -105,6 +106,7 @@ export default function Login() {
       }
     } catch (error) {
       setErrors(error);
+      console.log(error)
     }
   };
 
