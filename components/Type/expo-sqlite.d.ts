@@ -1,5 +1,5 @@
 declare module 'expo-sqlite' {
-    export function openDatabaseSync(
+    export function openDatabaseAsync(
         name: string,
         version?: string,
         description?: string,

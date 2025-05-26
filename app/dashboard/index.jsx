@@ -129,10 +129,10 @@ const index = () => {
           </View>
         ))}
       </View>
-      <View style={{ marginTop: 20 }}>
+      {/* <View style={{ marginTop: 20 }}>
         <Text style={styles.detailText}>List of current schedule</Text>
         <ThemedAppointmentList />
-      </View>
+      </View> */}
     </ThemedView>
   );
 };

@@ -21,11 +21,11 @@ import ThemedError from "../../components/ThemedForm/ThemedError";
 import logo from "../../assets/davao_logo.png";
 import dcho from "../../assets/dcho.png";
 import React, { useEffect, useState } from "react";
-import * as SQLite from 'expo-sqlite';
+import { useAuthDatabase } from "../../components/hooks/useAuthDatabase";
 
-let db = null;
 
 export default function Login() {
+  const { saveTokenToDB } = useAuthDatabase();
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
   const windowWidth = Dimensions.get("window").width;
@@ -37,96 +37,12 @@ export default function Login() {
     password: "",
   });
   const [errors, setErrors] = useState([]);
-  const [isDbInitialized, setIsDbInitialized] = useState(false);
-
-
-  useEffect(() => {
-    initializeDatabase();
-  }, []);
-
-  useEffect(() => {
-    if (isDbInitialized) {
-      checkExistingToken();
-    }
-  }, [isDbInitialized]);
-
-
-  const initializeDatabase = async () => {
-    try {
-      if (!db) {
-        db = await SQLite.openDatabaseAsync('user.db');
-      }
-      await db.execAsync(`
-        CREATE TABLE IF NOT EXISTS user (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          token TEXT NOT NULL
-        );
-      `);
-
-      setIsDbInitialized(true);
-      console.log('Database initialized successfully');
-    } catch (error) {
-      console.error('Error initializing database:', error);
-      checkAsyncStorageToken();
-    }
-  };
-
-  const checkAsyncStorageToken = async () => {
-    try {
-      const token = await AsyncStorage.getItem("_token");
-      if (token) {
-        router.replace("/dashboard");
-      }
-    } catch (error) {
-      console.error('Error checking AsyncStorage token:', error);
-    }
-  };
-
-  const checkExistingToken = async () => {
-    try {
-      if (!db) {
-        console.log('Database not initialized, checking AsyncStorage');
-        await checkAsyncStorageToken();
-        return;
-      }
-
-      const result = await db.getFirstAsync('SELECT token FROM user ORDER BY id DESC LIMIT 1');
-      console.log('Database result:', result);
-
-      if (result && result.token) {
-        await AsyncStorage.setItem("_token", result.token);
-        router.replace("/dashboard");
-      } else {
-        await checkAsyncStorageToken();
-      }
-    } catch (error) {
-      console.error('Error checking existing token:', error);
-      await checkAsyncStorageToken();
-    }
-  };
-
-  const saveTokenToDB = async (token) => {
-    try {
-      if (!db) {
-        console.log('Database not available, skipping DB save');
-        return;
-      }
-
-      // Clear existing tokens first
-      await db.runAsync('DELETE FROM user');
-      // Insert new token
-      await db.runAsync('INSERT INTO user (token) VALUES (?)', [token]);
-      console.log('Token saved to database successfully');
-    } catch (error) {
-      console.error('Error saving token to database:', error);
-    }
-  };
 
   const submitLogin = async () => {
     try {
       const params = {
-        email: form.email.trim(),
-        password: form.password,
+        email: "citc@admin.com",
+        password: "password",
       };
       const response = await authService.login(params);
       if (response.data) {
@@ -147,8 +63,8 @@ export default function Login() {
         );
       }
     } catch (error) {
-      setErrors(error);
-      console.log(error)
+      const serverErrors = error.response?.data ?? {};
+      setErrors(serverErrors);
     }
   };
 
@@ -176,7 +92,7 @@ export default function Login() {
         <View style={styles.inputContainer}>
           <ThemedInputField
             style={{ width: windowWidth - 40 }}
-            value={form.email}
+            value={"citc@admin.com"}
             onChangeText={(text) => setForm({ ...form, email: text })}
             label="Email address"
           />
@@ -186,7 +102,7 @@ export default function Login() {
         <View style={styles.inputContainer}>
           <ThemedInputField
             style={{ width: windowWidth - 40 }}
-            value={form.password}
+            value={"password"}
             onChangeText={(text) => setForm({ ...form, password: text })}
             secureTextEntry={true}
             label="Password"
