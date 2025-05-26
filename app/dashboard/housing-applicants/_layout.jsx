@@ -24,7 +24,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="association/index"
+        name="association"
         options={{
           title: "Association",
           tabBarIcon: ({ color }) => (

@@ -14,6 +14,7 @@ const InputField = ({
   placeholder,
   secureTextEntry = false,
   style,
+  required = false,
   ...props
 }) => {
   const [hidePassword, setHidePassword] = useState(secureTextEntry);
@@ -23,7 +24,10 @@ const InputField = ({
 
   return (
     <View style={[styles.container, style]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={styles.label}>
+        {label}
+        {required && <Text style={{ color: "red" }}>*</Text>}
+      </Text>}
 
       <View style={styles.inputWrapper}>
         <TextInput
@@ -35,7 +39,7 @@ const InputField = ({
         />
         {showToggle && (
           <TouchableOpacity style={styles.iconWrapper} onPress={toggleSecure}>
-            {hidePassword ? <EyeOff size={20} color="#2680eb" /> : <Eye size={20} color="#2680eb"/>}
+            {hidePassword ? <EyeOff size={20} color="#2680eb" /> : <Eye size={20} color="#2680eb" />}
           </TouchableOpacity>
         )}
       </View>

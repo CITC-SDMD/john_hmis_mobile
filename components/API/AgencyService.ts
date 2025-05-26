@@ -16,7 +16,7 @@ class AgencyService extends BaseApiService {
     async saveAgencies(params: object): Promise<any> {
         return await this.request(`/agencies`, "POST", params);
     }
-    
+
     async updateAgency(uuid: object, params: object): Promise<any> {
         return await this.request(`/agencies/${uuid}`, "PUT", params);
     }

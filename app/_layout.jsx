@@ -1,4 +1,4 @@
-import { StatusBar, Platform } from "react-native";
+import { StatusBar, Platform, Text } from "react-native";
 import { MenuProvider } from "react-native-popup-menu";
 import { AlertNotificationRoot } from "react-native-alert-notification";
 import { Stack } from "expo-router";
