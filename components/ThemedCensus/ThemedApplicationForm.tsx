@@ -360,6 +360,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
     }
 
     const handleSubmit = async () => {
+        console.log("submitted")
         try {
             await ThemedValidation.validate(form, { abortEarly: false });
             setErrors({});
@@ -559,7 +560,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                             icon={() => <FontAwesome6 name="calendar" size={18} color="#2680eb" />}>
                             <TextInput
                                 style={styles.inputWithIcon}
-                                value={form.married_date ? format(form.married_date, "MMMM dd, yyyy") : ""}
+                                value={form.married_date ? format(form.married_date, "MMMM dd, yyyy") : null}
                                 editable={false}
                                 pointerEvents="none"
                                 placeholder="Select date"
@@ -601,7 +602,6 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                             hidePicker={() => close('live_in_date')}
                             isPickerVisible={showLivingInDate}
                         />
-                        {/* <ThemedError error={errors?.errors?.live_in_date?.[0]} /> */}
                         <ThemedError error={error?.['live_in_date']} />
                     </View>
                 )}
@@ -620,7 +620,8 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                                 onChangeText={(value) => setForm(prev => ({ ...prev, spouse_lastname: value }))}
 
                             />
-                            <ThemedError error={errors?.errors?.spouse_lastname?.[0]} />
+                            <ThemedError error={error?.['spouse_lastname']} />
+
                         </View>
                         <View style={{ flex: 1 }}>
                             <ThemedInputField
@@ -630,7 +631,8 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                                 value={form.spouse_middlename}
                                 onChangeText={(value) => setForm(prev => ({ ...prev, spouse_middlename: value }))}
                             />
-                            <ThemedError error={errors?.errors?.spouse_middlename?.[0]} />
+                            <ThemedError error={error?.['spouse_middlename']} />
+
                         </View>
                     </View>
                     <View style={styles.row}>
@@ -642,7 +644,8 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                                 value={form.spouse_firstname}
                                 onChangeText={(value) => setForm(prev => ({ ...prev, spouse_firstname: value }))}
                             />
-                            <ThemedError error={errors?.errors?.spouse_firstname?.[0]} />
+                            <ThemedError error={error?.['spouse_firstname']} />
+
                         </View>
 
                         {/* BirthDate spouse */}
@@ -667,7 +670,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                                 hidePicker={() => close('birthdate')}
                                 isPickerVisible={showBirthDatePicker}
                             />
-                            <ThemedError error={errors?.errors?.spouse_birthdate?.[0]} />
+                            <ThemedError error={error?.['spouse_birthdate']} />
                         </View>
                     </View>
                 </View>
@@ -699,7 +702,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                         ]}
                         selected={form.housing_occupancy}
                     />
-                    <ThemedError error={errors?.errors?.housing_occupancy?.[0]} />
+                    <ThemedError error={error?.['housing_occupancy']} />
                 </View>
 
                 <View style={{ flex: 1, padding: 5 }}>
@@ -717,7 +720,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                         ]}
                         selected={form.lot_occupancy}
                     />
-                    <ThemedError error={errors?.errors?.lot_occupancy?.[0]} />
+                    <ThemedError error={error?.['lot_occupancy']} />
                 </View>
             </View>
 
@@ -731,7 +734,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                         value={String(form.number_of_families ?? '')}
                         onChangeText={(value) => setForm(prev => ({ ...prev, number_of_families: value }))}
                     />
-                    <ThemedError error={errors?.errors?.number_of_families?.[0]} />
+                    <ThemedError error={error?.['number_of_families']} />
                 </View>
                 <View style={{ flex: 1 }}>
                     <ThemedInputField
@@ -741,7 +744,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                         value={String(form.year_renovated ?? '')}
                         onChangeText={(value) => setForm(prev => ({ ...prev, year_renovated: value }))}
                     />
-                    <ThemedError error={errors?.errors?.year_renovated?.[0]} />
+                    <ThemedError error={error?.['year_renovated']} />
                 </View>
             </View>
 
@@ -753,7 +756,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                     value={String(form.year_resided ?? '')}
                     onChangeText={(value) => setForm(prev => ({ ...prev, year_resided: value }))}
                 />
-                <ThemedError error={errors?.errors?.year_resided?.[0]} />
+                <ThemedError error={error?.['year_resided']} />
             </View>
 
             <View style={[styles.inputWrapper, styles.row]}>
@@ -769,34 +772,8 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                         ]}
                         selected={form.structure_type}
                     />
-                    <ThemedError error={errors?.errors?.structure_type?.[0]} />
-
+                    <ThemedError error={error?.['structure_type']} />
                 </View>
-
-                {form.structure_type === "others" && (
-                    <View style={{ padding: 5 }}>
-                        <ThemedInputField
-                            required={true}
-                            label="Specify Structure"
-                            style={styles.flexInput}
-                            value={form.structure_others}
-                            onChangeText={(value) => setForm(prev => ({ ...prev, structure_others: value }))}
-                        />
-                        <ThemedError error={errors?.errors?.structure_others?.[0]} />
-                    </View>
-                )}
-
-                {form.structure_type && (
-                    <View style={{ padding: 5 }}>
-                        <ThemedInputField
-                            label="Upload structure image"
-                            style={styles.flexInput}
-                            value={form.structure_url}
-                            onChangeText={(value) => setForm(prev => ({ ...prev, structure_url: value }))}
-                        />
-                        <ThemedError error={errors?.errors?.structure_url?.[0]} />
-                    </View>
-                )}
 
                 <View style={{ flex: 1, padding: 5 }}>
                     <ThemedInputField
@@ -808,6 +785,34 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                     />
                     <ThemedError error={errors?.errors?.storeys?.[0]} />
                 </View>
+            </View>
+
+            <View style={[styles.row]}>
+                {form.structure_type === "others" && (
+                    <View style={{ flex: 1, padding: 5 }}>
+                        <ThemedInputField
+                            required={true}
+                            label="Specify Structure"
+                            style={styles.flexInput}
+                            value={form.structure_others}
+                            onChangeText={(value) => setForm(prev => ({ ...prev, structure_others: value }))}
+                        />
+                        {/* <ThemedError error={errors?.errors?.structure_others?.[0]} /> */}
+                        <ThemedError error={error?.['structure_others']} />
+                    </View>
+                )}
+
+                {form.structure_type && (
+                    <View style={{ flex: 1, padding: 5 }}>
+                        <ThemedInputField
+                            label="Upload structure image"
+                            style={styles.flexInput}
+                            value={form.structure_url}
+                            onChangeText={(value) => setForm(prev => ({ ...prev, structure_url: value }))}
+                        />
+                        <ThemedError error={errors?.errors?.structure_url?.[0]} />
+                    </View>
+                )}
             </View>
 
             <View style={{ marginTop: 10 }}>
@@ -844,15 +849,17 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                 />
             </View>
 
-            {form.rent_without_consent_location === "others" && (
-                <View style={{ marginTop: 10 }}>
-                    <ThemedInputField
-                        label="Rent without consent location others"
-                        value={form.rent_without_consent_location_others}
-                        onChangeText={(value) => setForm(prev => ({ ...prev, rent_without_consent_location_others: value }))}
-                    />
-                </View>
-            )}
+            {
+                form.rent_without_consent_location === "others" && (
+                    <View style={{ marginTop: 10 }}>
+                        <ThemedInputField
+                            label="Rent without consent location others"
+                            value={form.rent_without_consent_location_others}
+                            onChangeText={(value) => setForm(prev => ({ ...prev, rent_without_consent_location_others: value }))}
+                        />
+                    </View>
+                )
+            }
 
             <View style={[styles.row, styles.inputWrapper,
             form.rent_without_consent_location === "others" ? {} : { marginTop: 10 }
@@ -891,17 +898,19 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
                 )}
             </View>
 
-            {form.hazard === "others" && (
-                <View style={{ marginTop: 10 }}>
-                    <ThemedInputField
-                        required={true}
-                        label="Specify hazard"
-                        value={form.hazard_others}
-                        onChangeText={(value) => setForm(prev => ({ ...prev, hazard_others: value }))}
-                    />
-                    <ThemedError error={errors?.errors?.hazard_others?.[0]} />
-                </View>
-            )}
+            {
+                form.hazard === "others" && (
+                    <View style={{ marginTop: 10 }}>
+                        <ThemedInputField
+                            required={true}
+                            label="Specify hazard"
+                            value={form.hazard_others}
+                            onChangeText={(value) => setForm(prev => ({ ...prev, hazard_others: value }))}
+                        />
+                        <ThemedError error={errors?.errors?.hazard_others?.[0]} />
+                    </View>
+                )
+            }
 
             <View style={[styles.row, styles.inputWrapper,
             form.hazard === "others" ? {} : { marginTop: 10 }
@@ -1005,7 +1014,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, errors, remo
             </View>
 
             <ThemedSubmit title={"Submit"} style={styles.submitButton} onPress={handleSubmit} />
-        </ScrollView>
+        </ScrollView >
     )
 }
 
