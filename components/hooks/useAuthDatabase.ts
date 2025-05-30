@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 
@@ -31,7 +31,7 @@ export const useAuthDatabase = () => {
       `);
 
             setIsDbInitialized(true);
-            console.log('Database initialized successfully');
+            // console.log('Database initialized successfully');
         } catch (error) {
             console.error('Error initializing database:', error);
             checkAsyncStorageToken();
@@ -42,7 +42,7 @@ export const useAuthDatabase = () => {
         try {
             const token = await AsyncStorage.getItem("_token");
             if (token) {
-                router.replace("/dashboard");
+                router.replace("/dashboard/housing-applicants/individual");
             }
         } catch (error) {
             console.error('Error checking AsyncStorage token:', error);
@@ -52,17 +52,17 @@ export const useAuthDatabase = () => {
     const checkExistingToken = async () => {
         try {
             if (!db) {
-                console.log('Database not initialized, checking AsyncStorage');
+                // console.log('Database not initialized, checking AsyncStorage');
                 await checkAsyncStorageToken();
                 return;
             }
 
             const result = await db.getFirstAsync('SELECT token FROM user ORDER BY id DESC LIMIT 1');
-            console.log('Database result:', result);
+            // console.log('Database result:', result);
 
             if (result && result.token) {
                 await AsyncStorage.setItem("_token", result.token);
-                console.log('Token found in database:', result.token);
+                // console.log('Token found in database:', result.token);
                 router.replace("/dashboard");
             } else {
                 await checkAsyncStorageToken();
@@ -76,13 +76,13 @@ export const useAuthDatabase = () => {
     const saveTokenToDB = async (token: string) => {
         try {
             if (!db) {
-                console.log('Database not available, skipping DB save');
+                // console.log('Database not available, skipping DB save');
                 return;
             }
 
             await db.runAsync('DELETE FROM user');
             await db.runAsync('INSERT INTO user (token) VALUES (?)', [token]);
-            console.log('Token saved to database successfully');
+            // console.log('Token saved to database successfully');
         } catch (error) {
             console.error('Error saving token to database:', error);
         }
@@ -92,7 +92,7 @@ export const useAuthDatabase = () => {
         try {
             await db.runAsync('DELETE FROM user');
             await AsyncStorage.removeItem("_token");
-            console.log('Token cleared from database and AsyncStorage successfully');
+            // console.log('Token cleared from database and AsyncStorage successfully');
         } catch (error) {
             console.error('Error clearing token from DB:', error);
         }

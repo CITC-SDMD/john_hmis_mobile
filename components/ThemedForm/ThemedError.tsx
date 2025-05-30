@@ -9,8 +9,9 @@ const FormError = ({ error }) => {
 const styles = StyleSheet.create({
   errorText: {
     color: 'red',
-    fontSize: 12,
+    fontSize: 10,
     marginTop: -12,
+    marginBottom: 5,
   },
 });
 

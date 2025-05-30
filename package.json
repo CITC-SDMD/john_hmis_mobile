@@ -11,9 +11,8 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-community/datetimepicker": "^8.3.0",
-    "@react-native-community/datetimepicker": "^8.3.0",
-    "@react-navigation/drawer": "^7.3.11",
-    "@react-navigation/native": "^7.1.8",
+    "@react-navigation/drawer": "^7.3.12",
+    "@react-navigation/native": "^7.1.9",
     "date-fns": "^4.1.0",
     "expo": "~53.0.9",
     "expo-constants": "~17.1.6",
@@ -27,27 +26,29 @@
     "expo-status-bar": "~2.2.3",
     "formik": "^2.4.6",
     "lodash": "^4.17.21",
-    "lucide-react-native": "^0.507.0",
+    "lucide-react-native": "^0.511.0",
     "react": "19.0.0",
     "react-native": "0.79.2",
     "react-native-alert-notification": "^0.4.2",
     "react-native-dots-pagination": "^0.3.1",
-    "react-native-gesture-handler": "~2.24.0",
+    "react-native-gesture-handler": "~2.25.0",
     "react-native-modal-datetime-picker": "^18.0.0",
-    "react-native-pager-view": "^6.7.1",
-    "react-native-popup-menu": "^0.16.1",
-    "react-native-reanimated": "~3.17.4",
+    "react-native-pager-view": "^6.8.0",
+    "react-native-picker-select": "^9.3.1",
+    "react-native-popup-menu": "^0.17.0",
+    "react-native-reanimated": "~3.17.5",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.10.0",
     "react-native-sqlite-storage": "^6.0.1",
-    "zustand": "^5.0.4"
+    "yup": "^1.6.1",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@types/react": "~19.0.10",
+    "@babel/core": "^7.27.1",
+    "@types/react": "~19.0.14",
     "@types/react-native-sqlite-storage": "^6.0.5",
     "react-native-dotenv": "^3.4.11",
-    "typescript": "^5.3.3"
+    "typescript": "^5.8.3"
   },
   "private": true
 }

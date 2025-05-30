@@ -8,7 +8,7 @@ import {
     Button,
     TouchableWithoutFeedback
 } from 'react-native';
-import ThemedButton from '../../components/ThemedForm/ThemedButton'
+import ThemedButton from './ThemedSubmit'
 
 const YourComponent = () => {
     const [modalVisible, setModalVisible] = useState(false);

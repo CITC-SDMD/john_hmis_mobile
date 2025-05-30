@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-const ThemedRadioBtn = ({ label, required, options, onChange, selected }) => {
+const ThemedRadioBtn = ({ label, required, options, onChangeText, selected, style }) => {
     const [selectedOption, setSelectedOption] = useState(selected);
+
+    useEffect(() => {
+        setSelectedOption(selected);
+    }, [selected]);
 
     const handleSelect = (value) => {
         setSelectedOption(value);
-        if (onChange) onChange(value);
+        if (onChangeText) onChangeText(value);
     };
 
     return (
@@ -14,7 +18,7 @@ const ThemedRadioBtn = ({ label, required, options, onChange, selected }) => {
             {label && (
                 <Text style={styles.groupLabel}>
                     {label}
-                    {required && <Text style={styles.required}> *</Text>}
+                    {required && <Text style={{ color: "red" }}> *</Text>}
                 </Text>
             )}
 
@@ -42,23 +46,20 @@ const ThemedRadioBtn = ({ label, required, options, onChange, selected }) => {
 export default ThemedRadioBtn;
 
 const styles = StyleSheet.create({
-    container: {
-        marginVertical: 8,
-    },
+    container: {},
     groupLabel: {
         fontSize: 14,
-        // fontWeight: '500',
-        marginBottom: 6,
-    },
-    required: {
-        color: 'red',
+        fontWeight: "500",
+        color: "#2D3748",
+        marginBottom: 5,
     },
     row: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        alignItems: 'center',
+        // alignItems: 'center',
         gap: 8,
-        marginTop: 1,
+        // marginTop: 1,
+        marginBottom: 10
     },
     option: {
         flexDirection: 'row',
@@ -79,6 +80,6 @@ const styles = StyleSheet.create({
         borderColor: '#007AFF',
     },
     label: {
-        fontSize: 15,
+        fontSize: 14,
     },
 });

@@ -5,11 +5,10 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
 } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
 
-const InputField = ({
+const ThemedInputField = ({
   label,
   placeholder,
   secureTextEntry = false,
@@ -26,15 +25,18 @@ const InputField = ({
     <View style={[styles.container, style]}>
       {label && <Text style={styles.label}>
         {label}
-        {required && <Text style={{ color: "red" }}>*</Text>}
+        {required && <Text style={{ color: "red" }}> *</Text>}
       </Text>}
 
       <View style={styles.inputWrapper}>
         <TextInput
           style={styles.input}
+          keyboardType={props.keyboardType}
           placeholder={placeholder}
           placeholderTextColor="#666"
           secureTextEntry={hidePassword}
+          onChangeText={props.onChangeText}
+          value={props.value}
           {...props}
         />
         {showToggle && (
@@ -47,7 +49,7 @@ const InputField = ({
   );
 };
 
-export default InputField;
+export default ThemedInputField;
 
 const styles = StyleSheet.create({
   container: {
@@ -55,9 +57,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontWeight: "medium",
-    marginBottom: 6,
-    color: "#000",
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#2D3748",
+    marginBottom: 4,
   },
   inputWrapper: {
     flexDirection: "row",

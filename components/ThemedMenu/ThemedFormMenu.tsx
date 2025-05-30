@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { MaterialIcons } from '@expo/vector-icons';
-import { Dropdown } from 'react-native-element-dropdown';
+// import { Dropdown } from 'react-native-element-dropdown';
 import {
     Text,
     StyleSheet,
@@ -119,7 +119,7 @@ const ThemedFormMenu = ({ label = "Actions", onRemarks = () => { }, theme }) => 
                 </MenuOptions>
             </Menu>
 
-            <Modal
+            {/* <Modal
                 transparent
                 animationType="slide"
                 visible={isModalVisible}
@@ -175,9 +175,9 @@ const ThemedFormMenu = ({ label = "Actions", onRemarks = () => { }, theme }) => 
                         </View>
                     </Pressable>
                 </Pressable>
-            </Modal >
+            </Modal > */}
 
-            <Modal
+            {/* <Modal
                 transparent
                 animationType="slide"
                 visible={isRequirementsModalVisible}
@@ -213,7 +213,7 @@ const ThemedFormMenu = ({ label = "Actions", onRemarks = () => { }, theme }) => 
                         </Pressable>
                     </Pressable>
                 </Pressable>
-            </Modal>
+            </Modal> */}
         </>
     );
 };

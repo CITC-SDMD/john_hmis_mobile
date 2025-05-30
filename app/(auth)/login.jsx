@@ -16,12 +16,11 @@ import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ThemedView from "../../components/ThemedForm/ThemedView";
 import ThemedInputField from "../../components/ThemedForm/ThemedInputField";
-import ThemedCustomButton from "../../components/ThemedForm/ThemedButton";
-import ThemedCustomButton from "../../components/ThemedForm/ThemedButton";
+import ThemedCustomButton from "../../components/ThemedForm/ThemedSubmit";
 import ThemedError from "../../components/ThemedForm/ThemedError";
 import logo from "../../assets/davao_logo.png";
 import dcho from "../../assets/dcho.png";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useAuthDatabase } from "../../components/hooks/useAuthDatabase";
 
 
@@ -52,7 +51,7 @@ export default function Login() {
         await AsyncStorage.setItem("_token", token);
         await saveTokenToDB(token);
 
-        console.log('Token saved:', token);
+        // console.log('Token saved:', token);
         setUser(response.data.user);
         setErrors({});
 

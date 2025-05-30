@@ -6,7 +6,7 @@ import ThemedRadioBtn from '../../../components/ThemedForm/ThemedRadioBtn'
 import { useState } from 'react'
 import ThemedPlaceModal from '../../../components/ThemedForm/ThemedPlaceModal'
 import { modalVisible } from '../../../components/ThemedForm/ThemedPlaceModal'
-import ThemedButton from '../../../components/ThemedForm/ThemedButton'
+import ThemedButton from '../../../components/ThemedForm/ThemedSubmit'
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from 'expo-router'
 import ThemedTableForm from '../../../components/ThemedTable/ThemedTableForm'
@@ -37,25 +37,25 @@ const index = () => {
         console.log('Selected:', value);
     };
     const closeModal = () => modalVisible(false);
-    const validateDate = (text) => {
-        const onlyNumbers = text.replace(/\D/g, '');
-        setBirthdate(onlyNumbers);
+    // const validateDate = (text) => {
+    //     const onlyNumbers = text.replace(/\D/g, '');
+    //     setBirthdate(onlyNumbers);
 
-        if (onlyNumbers.length === 8) {
-            const year = parseInt(onlyNumbers.slice(0, 4), 10);
-            const month = parseInt(onlyNumbers.slice(4, 6), 10);
-            const day = parseInt(onlyNumbers.slice(6, 8), 10);
+    //     if (onlyNumbers.length === 8) {
+    //         const year = parseInt(onlyNumbers.slice(0, 4), 10);
+    //         const month = parseInt(onlyNumbers.slice(4, 6), 10);
+    //         const day = parseInt(onlyNumbers.slice(6, 8), 10);
 
-            const isValidDate =
-                !isNaN(new Date(`${year}-${month}-${day}`).getTime()) &&
-                month >= 1 && month <= 12 &&
-                day >= 1 && day <= 31;
+    //         const isValidDate =
+    //             !isNaN(new Date(`${year}-${month}-${day}`).getTime()) &&
+    //             month >= 1 && month <= 12 &&
+    //             day >= 1 && day <= 31;
 
-            setError(isValidDate ? '' : 'Invalid date');
-        } else {
-            setError('Date must be YYYYMMDD');
-        }
-    };
+    //         setError(isValidDate ? '' : 'Invalid date');
+    //     } else {
+    //         setError('Date must be YYYYMMDD');
+    //     }
+    // };
 
     return (
         <ScrollView style={styles.container}>
@@ -109,6 +109,8 @@ const index = () => {
                                 keyboardType="number-pad"
                                 maxLength={8}
                             />
+
+
                             {error ? (
                                 <Text style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 4 }}>
                                     {error}

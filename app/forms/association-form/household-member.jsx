@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, ScrollView } from 'react-native'
 import React from 'react'
 import ThemedView from '../../../components/ThemedForm/ThemedView'
-import ThemedButton from '../../../components/ThemedForm/ThemedButton'
+import ThemedButton from '../../../components/ThemedForm/ThemedSubmit'
 import ThemedRadioBtn from '../../../components/ThemedForm/ThemedRadioBtn'
 import ThemedInputField from '../../../components/ThemedForm/ThemedInputField'
 import { useState } from 'react'

@@ -1,6 +1,6 @@
-import BaseApiService from "./BaseAPIService";
+import BaseAPIService from '../../components/API/BaseAPIService';
 
-class ApplicationService extends BaseApiService {
+class ApplicationService extends BaseAPIService {
     async getApplicationList(): Promise<any> {
         return await this.request(`/applications`, "GET");
     }

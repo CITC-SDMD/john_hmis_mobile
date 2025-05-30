@@ -18,7 +18,7 @@ import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import { applicantSchedulesService } from "../../components/API/ApplicantSchedulesService";
 import { applicantService } from "../../components/API/ApplicantService";
 import ThemedCard from "../../components/ThemedForm/ThemedCard";
-import ThemedButton from "../../components/ThemedForm/ThemedButton";
+import ThemedButton from "../ThemedForm/ThemedSubmit";
 import ThemedDateTimePicker from "../../components/ThemedForm/ThemedDateTimePicker";
 import ThemeIndividualMenu from "../../components/ThemedMenu/ThemeIndividualMenu";
 import ThemedLabel from "../../components/ThemedForm/ThemedLabel";
