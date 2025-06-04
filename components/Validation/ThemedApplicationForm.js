@@ -1,4 +1,3 @@
-// validationSchema.js
 import * as Yup from 'yup';
 
 const ThemedValidation = Yup.object().shape({
@@ -17,7 +16,6 @@ const ThemedValidation = Yup.object().shape({
     is_davao_voter: Yup.boolean().required("This field is required"),
     is_government_project: Yup.boolean().required("This field is required"),
 
-    // Conditional structure others
     structure_others: Yup.string()
         .nullable()
         .when("structure_type", {
@@ -26,7 +24,7 @@ const ThemedValidation = Yup.object().shape({
             otherwise: (schema) => schema.notRequired(),
         }),
 
-    // Conditional married date
+
     married_date: Yup.date()
         .transform((value, originalValue) =>
             originalValue === "" ? null : value
@@ -37,7 +35,7 @@ const ThemedValidation = Yup.object().shape({
             then: (schema) => schema.required("This married date field is required"),
             otherwise: (schema) => schema.notRequired(),
         }),
-    // Conditional live in date
+
     live_in_date: Yup.date()
         .transform((value, originalValue) =>
             originalValue === "" ? null : value
@@ -48,7 +46,7 @@ const ThemedValidation = Yup.object().shape({
             then: (schema) => schema.required("The live in date is required"),
             otherwise: (schema) => schema.notRequired(),
         }),
-    // Conditional spouse info
+
     spouse_firstname: Yup.string()
         .nullable()
         .when("civil_status", {
@@ -84,7 +82,6 @@ const ThemedValidation = Yup.object().shape({
             otherwise: (schema) => schema.notRequired(),
         }),
 
-    // Conditional hazard
     hazard: Yup.string()
         .nullable()
         .when("is_dangerzone", {
@@ -101,7 +98,6 @@ const ThemedValidation = Yup.object().shape({
             otherwise: (schema) => schema.notRequired(),
         }),
 
-    // Conditional project type
     project_type: Yup.string()
         .nullable()
         .when("is_government_project", {

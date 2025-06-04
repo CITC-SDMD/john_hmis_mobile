@@ -1,17 +1,61 @@
-import { StyleSheet, Text, View, Modal, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, Text, View, Modal, TouchableWithoutFeedback, SafeAreaView, ActivityIndicator } from 'react-native';
+import { applicantResidencesService } from "../../components/API/applicantResidencesService";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useState } from 'react';
+import { useColorScheme } from "react-native";
+import { Colors } from "../../constants/Colors";
+import { ALERT_TYPE, Toast } from "react-native-alert-notification";
+import ThemedError from "../ThemedForm/ThemedError";
 import ThemedButton from '../ThemedForm/ThemedButton';
 import ThemedInputField from '../ThemedForm/ThemedInputField';
 import ThemedSubmit from '../ThemedForm/ThemedSubmit';
 import React from 'react';
 
-const ThemedAddPlace = () => {
+const ThemedAddPlace = ({ uuid, fetchApplicant }) => {
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme] ?? Colors.light;
     const [form, setForm] = useState({
         place: '',
         inclusive_dates: '',
     })
     const [showModal, setShowModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(false)
+    const [errors, setErrors] = useState('' as any);
+
+
+    const handleSubmitPlace = async () => {
+        try {
+            setIsLoading(true)
+            const params = {
+                applicant_uuid: uuid,
+                place: form.place,
+                inclusive_dates: form.inclusive_dates
+            }
+            const response = await applicantResidencesService.saveApplicantResidences(params)
+            if (response.data) {
+                setShowModal(false)
+                fetchApplicant();
+                successAlert(
+                    "Successful",
+                    "You have been successfully created residence",
+                    ALERT_TYPE.SUCCESS
+                );
+                setErrors({});
+            }
+        } catch (error) {
+            setErrors(error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    function successAlert(title, message, type) {
+        Toast.show({
+            title: title,
+            textBody: message,
+            type: type,
+        });
+    }
 
     const handleAddPlace = () => {
         setShowModal(true);
@@ -19,16 +63,27 @@ const ThemedAddPlace = () => {
 
     const handleCloseModal = () => {
         setShowModal(false);
+        setErrors({});
     };
 
+    if (isLoading) {
+        return (
+            <SafeAreaView style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.primary} />
+                <Text style={{ color: theme.textLight }}>Submitting ...</Text>
+            </SafeAreaView>
+        );
+    }
+
     return (
+
         <View style={styles.container}>
             <View style={styles.row}>
                 <Text style={styles.label}>
                     Specific Place of Previous Residence (in chronological order):
                 </Text>
                 <ThemedButton
-                    icon={() => <FontAwesome6 name="plus" size={14} color="#fff" />}
+                    icon={() => <FontAwesome6 name="location-dot" size={14} color="#fff" />}
                     styleButton={styles.button}
                     children={"Add place"}
                     onPress={handleAddPlace}
@@ -46,23 +101,42 @@ const ThemedAddPlace = () => {
                         <View style={styles.modalContainer}>
                             <Text style={styles.modalTitle}>Add place of previous residence</Text>
 
-                            <ThemedInputField label="Place"
-                                value={form.place}
-                                onChangeText={(value => setForm({ ...form, place: value }))}
-                            />
+                            <View>
+                                <ThemedInputField
+                                    label="Place"
+                                    required={true}
+                                    value={form.place}
+                                    onChangeText={(value) => {
+                                        setForm({ ...form, place: value });
+                                    }}
+                                />
+                                <ThemedError error={errors?.place || errors?.errors?.place?.[0]} />
+                            </View>
 
-                            <ThemedInputField label="Inclusive dates"
-                                value={form.inclusive_dates}
-                                onChangeText={(value => setForm({ ...form, inclusive_dates: value }))}
-                            />
+                            <View>
+                                <ThemedInputField
+                                    label="Inclusive dates"
+                                    required={true}
+                                    value={form.inclusive_dates}
+                                    onChangeText={(value) => {
+                                        setForm({ ...form, inclusive_dates: value });
+                                    }}
+                                />
+                                <ThemedError
+                                    error={errors?.inclusive_dates || errors?.errors?.inclusive_dates?.[0]}
+                                />
+                            </View>
 
-                            <ThemedSubmit style={styles.submitButton} title={"Submit"}
-                                onPress={() => console.log('Submit')}
+                            <ThemedSubmit
+                                style={styles.submitButton}
+                                title={"Submit"}
+                                onPress={handleSubmitPlace}
                             />
                         </View>
                     </View>
                 </TouchableWithoutFeedback>
             </Modal>
+
         </View>
     );
 };
@@ -100,7 +174,6 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 10,
         width: '80%',
-        // alignItems: 'center',
     },
     modalTitle: {
         fontSize: 14,
@@ -108,18 +181,22 @@ const styles = StyleSheet.create({
         color: '#2D3748',
         fontWeight: 'bold',
     },
-    closeButton: {
-        backgroundColor: '#2680eb',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    closeButtonText: {
-        color: '#fff',
-        fontWeight: '600',
-    },
     submitButton: {
         width: "100%",
-    }
+    },
+    item: {
+        backgroundColor: '#e2e2e2',
+        padding: 20,
+        marginVertical: 8,
+        marginHorizontal: 16,
+        borderRadius: 8,
+    },
+    title: {
+        fontSize: 18,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });

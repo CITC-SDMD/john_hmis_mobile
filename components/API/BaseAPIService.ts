@@ -12,14 +12,16 @@ class BaseApiService {
         const token = await AsyncStorage.getItem('_token');
         const baseURL = BASE_API_URL;
 
+        const isFormData = params instanceof FormData;
+
         const headers: HeadersInit = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : '',
+            Accept: 'application/json',
+            ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
         };
 
         let fullUrl = `${baseURL}${url}`;
-        let fetchOptions: RequestInit = {
+        const fetchOptions: RequestInit = {
             method,
             headers,
         };
@@ -28,7 +30,7 @@ class BaseApiService {
             const query = new URLSearchParams(params as Record<string, string>).toString();
             fullUrl += query ? `?${query}` : '';
         } else {
-            fetchOptions.body = JSON.stringify(params);
+            fetchOptions.body = isFormData ? params : JSON.stringify(params);
         }
 
         try {
@@ -46,13 +48,9 @@ class BaseApiService {
                         await this.revokeAccess();
                         break;
                     case 500:
-                        throw new APIError({
-                            message: 'Server error. Please try again. If the problem persists, contact your system administrator',
-                        });
+                        throw new APIError({ message: 'Server error. Please try again. If the problem persists, contact your system administrator' });
                     default:
-                        throw new APIError({
-                            message: 'Something went wrong. Please try again. If the problem persists, contact your system administrator',
-                        });
+                        throw new APIError({ message: 'Something went wrong. Please try again. If the problem persists, contact your system administrator' });
                 }
             }
 
@@ -62,6 +60,7 @@ class BaseApiService {
             throw new APIError({ message: err.message || 'Unknown error occurred' });
         }
     }
+
 
     async revokeAccess() {
         await AsyncStorage.removeItem('_token');

@@ -14,7 +14,7 @@ const ThemedRadioBtn = ({ label, required, options, onChangeText, selected, styl
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, style]}>
             {label && (
                 <Text style={styles.groupLabel}>
                     {label}
@@ -29,12 +29,9 @@ const ThemedRadioBtn = ({ label, required, options, onChangeText, selected, styl
                         style={styles.option}
                         onPress={() => handleSelect(option.value)}
                     >
-                        <View
-                            style={[
-                                styles.radio,
-                                selectedOption === option.value && styles.radioSelected,
-                            ]}
-                        />
+                        <View style={styles.radioOuter}>
+                            {selectedOption === option.value && <View style={styles.radioInner} />}
+                        </View>
                         <Text style={styles.label}>{option.label}</Text>
                     </TouchableOpacity>
                 ))}
@@ -56,30 +53,32 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        // alignItems: 'center',
-        gap: 8,
-        // marginTop: 1,
-        marginBottom: 10
+        marginBottom: 10,
     },
     option: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginRight: 4,
-        marginBottom: 4,
+        marginRight: 12,
+        marginBottom: 8,
     },
-    radio: {
-        height: 14,
-        width: 14,
-        borderRadius: 7,
+    radioOuter: {
+        height: 18,
+        width: 18,
+        borderRadius: 9,
         borderWidth: 2,
         borderColor: '#999',
-        marginRight: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 6,
     },
-    radioSelected: {
+    radioInner: {
+        height: 8,
+        width: 8,
+        borderRadius: 4,
         backgroundColor: '#007AFF',
-        borderColor: '#007AFF',
     },
     label: {
         fontSize: 14,
+        color: '#333',
     },
 });

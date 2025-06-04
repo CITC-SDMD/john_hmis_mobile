@@ -10,8 +10,8 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     fontSize: 10,
-    marginTop: -12,
-    marginBottom: 5,
+    marginTop: -10,
+    marginBottom: 10,
   },
 });
 

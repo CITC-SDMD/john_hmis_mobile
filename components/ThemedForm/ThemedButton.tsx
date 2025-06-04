@@ -19,16 +19,18 @@ const ThemedButton = ({
                 </Text>
             )}
 
-            <View style={[styles.buttonWrapper, styleButton]}>
-                <TouchableOpacity style={[styles.button]} onPress={onPress}>
-                    {IconComponent && (
-                        <View style={styles.iconWrapper}>
-                            <IconComponent size={18} color="#2680eb" />
-                        </View>
-                    )}
-                    <Text style={styles.placeholder}>{children}</Text>
-                </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+                style={[styles.button, styleButton]}
+                onPress={onPress}
+                activeOpacity={0.7}
+            >
+                {IconComponent && (
+                    <View style={styles.iconWrapper}>
+                        <IconComponent size={18} color="#2680eb" />
+                    </View>
+                )}
+                <Text style={styles.placeholder}>{children}</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -45,25 +47,14 @@ const styles = StyleSheet.create({
         color: "#2D3748",
         marginBottom: 5,
     },
-    buttonWrapper: {
+    button: {
         flexDirection: "row",
         alignItems: "center",
         borderWidth: 1,
         borderColor: "#2680eb",
         borderRadius: 8,
-        backgroundColor: "#fff",
-        paddingHorizontal: 10,
-    },
-    button: {
-        flexDirection: "row",
-        alignItems: "center",
         paddingVertical: 10,
-        justifyContent: "flex-start",
-    },
-    buttonText: {
-        color: "#fff",
-        fontSize: 14,
-        fontWeight: "bold",
+        paddingHorizontal: 12,
     },
     placeholder: {
         color: "#fff",
