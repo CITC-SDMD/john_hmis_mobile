@@ -1,28 +1,29 @@
 import { StyleSheet, Text, View, Modal, TouchableWithoutFeedback, SafeAreaView, ActivityIndicator } from 'react-native';
-import ThemedDropdown from "../../components/ThemedForm/ThemedDropdown";
-import { applicationService } from "../API/ApplicationService";
 import { FontAwesome6 } from "@expo/vector-icons";
-import { useState } from 'react';
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import { useColorScheme } from "react-native";
 import { Colors } from "../../constants/Colors";
-import * as DocumentPicker from 'expo-document-picker';
-import ThemedError from "../ThemedForm/ThemedError";
-import ThemedButton from '../../components/ThemedForm/ThemedButton';
 import { applicantDocumentService } from "../API/ApplicantDocumentService";
+import { useEffect, useState } from 'react';
+import * as DocumentPicker from 'expo-document-picker';
+import ThemedButton from '../../components/ThemedForm/ThemedButton';
 import ThemedSubmit from '../ThemedForm/ThemedSubmit';
-import { useEffect } from 'react';
 
 const ThemedAddDocuments = ({ uuid }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-
+    const [uploadCompleted, setUploadCompleted] = useState({
+        letter: false,
+        certificate: false,
+        affidavit: false
+    });
     const [currentStep, setCurrentStep] = useState(0);
     const [uploadedFiles, setUploadedFiles] = useState({});
 
     const [showModal, setShowModal] = useState(false);
     const [errors, setErrors] = useState('' as any)
     const [isLoading, setIsLoading] = useState(false)
+
 
     const requiredDocuments = [
         { id: 1, label: "Letter of Intent", key: "letter" },
@@ -50,15 +51,25 @@ const ThemedAddDocuments = ({ uuid }) => {
             }
             const response = await applicantDocumentService.getDocumentByUuid(params);
             if (response.data) {
-                console.log(response.data, 'fetch documentssss')
+                const docs = response.data;
+                setUploadCompleted({
+                    letter: docs.some(doc => doc.document_type_id === 1),
+                    certificate: docs.some(doc => doc.document_type_id === 2),
+                    affidavit: docs.some(doc => doc.document_type_id === 3),
+                });
+                const nextStep = requiredDocuments.findIndex(doc =>
+                    !docs.some(d => d.document_type_id === doc.id)
+                );
+                setCurrentStep(nextStep === -1 ? 0 : nextStep);
             }
         } catch (error) {
-            console.log(error)
+            setErrors(error)
         }
     }
 
     const handleSubmitRemarks = async () => {
         try {
+            setIsLoading(true)
             const currentDoc = requiredDocuments[currentStep];
             const file = uploadedFiles[currentDoc.key];
             const params = new FormData();
@@ -67,17 +78,30 @@ const ThemedAddDocuments = ({ uuid }) => {
             params.append('file', file);
             const response = await applicantDocumentService.saveApplicantDocument(params)
             if (response.data) {
-                console.log(response.data, 'success')
-                if (currentStep < requiredDocuments.length - 1) {
-                    setCurrentStep(prev => prev + 1);
+                successAlert(
+                    "Successful",
+                    "You have been successfully upload documents",
+                    ALERT_TYPE.SUCCESS
+                );
+                setUploadCompleted(prev => ({
+                    ...prev,
+                    [currentDoc.key]: true
+                }));
+
+                const nextStep = requiredDocuments.findIndex((doc, index) =>
+                    index > currentStep && !uploadCompleted[doc.key]
+                );
+
+                if (nextStep !== -1) {
+                    setCurrentStep(nextStep);
                 } else {
-                    setShowModal(false); // All done
+                    setShowModal(false);
                 }
             }
         } catch (error) {
             setErrors(error);
         } finally {
-            // setIsLoading(false)
+            setIsLoading(false)
         }
     };
 
@@ -118,6 +142,9 @@ const ThemedAddDocuments = ({ uuid }) => {
         setShowModal(false);
     };
 
+    const allDocumentsUploaded = requiredDocuments.every(doc =>
+        uploadCompleted[doc.key]
+    );
 
     function successAlert(title, message, type) {
         Toast.show({
@@ -156,22 +183,26 @@ const ThemedAddDocuments = ({ uuid }) => {
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalContainer}>
                             <View>
-                                <ThemedButton
-                                    children={
-                                        uploadedFiles[requiredDocuments[currentStep].key]
-                                            ? getFileName()
-                                            : requiredDocuments[currentStep].label
-                                    }
-                                    label="Upload Files"
-                                    icon={() => <FontAwesome6 name="upload" size={18} color="#fff" />}
-                                    styleButton={[styles.uploadImage, { justifyContent: 'center' }]}
-                                    onPress={handlePickFile}
-                                />
-                            </View>
+                                {!allDocumentsUploaded && (
+                                    <View>
+                                        <ThemedButton
+                                            children={
+                                                uploadedFiles[requiredDocuments[currentStep].key]
+                                                    ? getFileName()
+                                                    : requiredDocuments[currentStep].label
+                                            }
+                                            label="Upload Documents"
+                                            icon={() => <FontAwesome6 name="upload" size={18} color="#fff" />}
+                                            styleButton={[styles.uploadImage, { justifyContent: 'center' }]}
+                                            onPress={handlePickFile}
+                                        />
 
-                            <ThemedSubmit style={styles.submitButton} title={"Submit"}
-                                onPress={handleSubmitRemarks}
-                            />
+                                        <ThemedSubmit style={styles.submitButton} title={"Submit"}
+                                            onPress={handleSubmitRemarks}
+                                        />
+                                    </View>
+                                )}
+                            </View>
                         </View>
                     </View>
                 </TouchableWithoutFeedback>

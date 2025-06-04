@@ -260,7 +260,6 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
         try {
             setIsLoadingComponent(true)
             const response = await applicantService.getApplicantByUuid(uuid)
-            // console.log(response.data)
             if (response.data) {
                 const previous_residence = response.data.previous_residences;
                 const household_firstname = response.data.firstname
@@ -291,7 +290,8 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
 
             if (response.data) {
                 const datas = response.data.application;
-                console.log(datas.attested_signature)
+                console.log(datas, ' samplesss')
+                // console.log(datas)
                 setForm(prev => ({
                     ...prev,
                     tag_number: datas?.tag_number,
@@ -327,7 +327,6 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
                     is_davao_voter: datas?.is_davao_voter,
                     not_davao_voter_place: datas?.not_davao_voter_place,
                     structure: datas?.structure_url,
-
                     remarks: datas?.remarks,
                     attested_by: datas?.attested_by,
                     attested_signature: datas?.attested_signature
