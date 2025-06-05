@@ -235,7 +235,7 @@ const ApplicantList = ({
                       data={item}
                       onForm={() =>
                         router.push(
-                          `/dashboard/housing-applicants/individual/application-form/${item?.uuid}`
+                          `/dashboard/housing-applicants/individual/basicInformation-form/${item?.uuid}`
                         )
                       }
                       onSchedule={() => {

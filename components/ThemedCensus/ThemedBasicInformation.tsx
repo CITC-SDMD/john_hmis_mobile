@@ -1,28 +1,27 @@
 import { StyleSheet, Text, View, TextInput, ScrollView, RefreshControl, TouchableOpacity, SafeAreaView, ActivityIndicator, FlatList } from "react-native";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
-import { barangayService } from "../../components/API/BarangayService";
-import { applicantService } from "../../components/API/ApplicantService";
-import { applicantResidencesService } from "../../components/API/applicantResidencesService";
+import { barangayService } from "../API/BarangayService";
+import { applicantService } from "../API/ApplicantService";
+import { applicantResidencesService } from "../API/applicantResidencesService";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useEffect, useState, useRef } from 'react'
 import { format } from "date-fns";
 import { useColorScheme } from "react-native";
 import { Colors } from "../../constants/Colors";
 import * as DocumentPicker from 'expo-document-picker';
-import ThemedError from "../../components/ThemedForm/ThemedError";
-import ThemedInputField from "../../components/ThemedForm/ThemedInputField"
-import ThemedSubmit from '../../components/ThemedForm/ThemedSubmit'
-import ThemedButton from "../../components/ThemedForm/ThemedButton";
-import ThemedDate from "../../components/ThemedForm/ThemedDate";
-import ThemedRadioBtn from "../../components/ThemedForm/ThemedRadioBtn";
-import ThemedAddPlace from "../../components/ThemedCensus/ThemedAddPlace"
-import ThemedAddRemarks from "../../components/ThemedCensus/ThemedAddRemarks";
-import ThemedAddDocuments from "../../components/ThemedCensus/ThemedAddDocuments";
-import ThemedDropdown from "../../components/ThemedForm/ThemedDropdown";
+import ThemedError from "../ThemedForm/ThemedError";
+import ThemedInputField from "../ThemedForm/ThemedInputField"
+import ThemedSubmit from '../ThemedForm/ThemedSubmit'
+import ThemedButton from "../ThemedForm/ThemedButton";
+import ThemedDate from "../ThemedForm/ThemedDate";
+import ThemedRadioBtn from "../ThemedForm/ThemedRadioBtn";
+import ThemedPlace from "./ThemedPlace"
+import ThemedRemarks from "./ThemedRemarks";
+import ThemedDocuments from "./ThemedDocuments";
+import ThemedDropdown from "../ThemedForm/ThemedDropdown";
 import ThemedValidation from "../Validation/ThemedApplicationForm"
 
-
-const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRemarks, }) => {
+const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
     const previousStatusRef = useRef('');
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
@@ -482,8 +481,8 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }>
             <View style={styles.row}>
-                <ThemedAddRemarks sex={form.sex} uuid={uuid} attested_by={form.attested_by} attested_signature={form.attested_signature} remarks={form.remarks} />
-                <ThemedAddDocuments uuid={uuid} />
+                <ThemedRemarks sex={form.sex} uuid={uuid} attested_by={form.attested_by} attested_signature={form.attested_signature} remarks={form.remarks} />
+                <ThemedDocuments uuid={uuid} />
             </View>
             <View style={styles.row}>
                 <ThemedInputField label="Census Control #"
@@ -1209,7 +1208,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
                 </View>
             </View>
             <View>
-                <ThemedAddPlace uuid={uuid} fetchApplicant={fetchAllData} />
+                <ThemedPlace uuid={uuid} fetchApplicant={fetchAllData} />
                 <FlatList
                     data={houseHold.previous_residence}
                     renderItem={renderItem}
@@ -1218,12 +1217,12 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
                 />
             </View>
 
-            <ThemedSubmit title={"Submit"} style={[styles.submitButton, { marginTop: 10 }]} onPress={handleSubmit} />
+            <ThemedSubmit title={"Next"} style={[styles.submitButton, { marginTop: 10 }]} onPress={handleSubmit} />
         </ScrollView >
     )
 }
 
-export default ThemedApplicationForm
+export default ThemedBasicInformation
 
 const styles = StyleSheet.create({
     row: {

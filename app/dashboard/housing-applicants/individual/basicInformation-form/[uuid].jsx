@@ -1,20 +1,15 @@
-import ThemedApplicationForm from "../../../../../components/ThemedCensus/ThemedApplicationForm"
+import ThemedBasicInformation from "../../../../../components/ThemedCensus/ThemedBasicInformation"
 import ThemedView from "../../../../../components/ThemedForm/ThemedView";
 import { applicationService } from "../../../../../components/API/ApplicationService";
 import { StyleSheet } from "react-native";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { useState } from 'react'
 
 const createForm = () => {
   const { uuid } = useLocalSearchParams();
-  // const [refreshKey, setRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
-  // const fetchApplicant = async () => {
-  //   setRefreshKey(prev => prev + 1);
-  // };
 
   const handleSubmit = async (form) => {
     try {
@@ -34,12 +29,13 @@ const createForm = () => {
       });
       const response = await applicationService.saveApplication(formData)
       if (response.data) {
-        setErrors({});
         successAlert(
           "Successful",
           "You have been successfully created application",
           ALERT_TYPE.SUCCESS
         );
+        router.push(`/dashboard/housing-applicants/individual/otherInformation-form/${uuid}`)
+        setErrors({});
       }
     } catch (error) {
       setErrors(error);
@@ -59,14 +55,10 @@ const createForm = () => {
 
   return (
     <ThemedView style={[styles.container, { paddingHorizontal: 10 }]} safe={true}>
-      <ThemedApplicationForm uuid={uuid}
+      <ThemedBasicInformation uuid={uuid}
         onSubmit={handleSubmit}
         isLoading={isLoading}
         error={errors}
-      // removeErrors={removeErrors}
-      // onSubmitRemarks={handleSubmitRemarks}
-      // onRefreshApplicant={fetchApplicant}
-      // refreshKey={refreshKey}
       />
     </ThemedView >
   );

@@ -1,17 +1,26 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useColorScheme } from "react-native";
 import { Colors } from "../../../constants/Colors";
-import { Tabs } from "expo-router";
+import { Tabs, usePathname } from "expo-router";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const pathname = usePathname();
   const theme = Colors[colorScheme] ?? Colors.light;
 
+  const hideTabPaths = [
+    "/dashboard/housing-applicants/individual/basicInformation-form/",
+    "/dashboard/housing-applicants/individual/otherInformation-form/"
+
+  ]
+
+  const hideTabs = hideTabPaths.some(path => pathname.startsWith(path));
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: theme.btn,
         headerShown: false,
+        tabBarStyle: hideTabs ? { display: "none" } : {},
       }}
     >
       <Tabs.Screen

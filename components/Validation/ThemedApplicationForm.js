@@ -12,9 +12,9 @@ const ThemedValidation = Yup.object().shape({
     storeys: Yup.string().required("The storeys field is required"),
     year_resided: Yup.string().required("The year resided field is required"),
     civil_status: Yup.string().required("The civil status field is required"),
-    is_dangerzone: Yup.boolean().required("This field is required"),
-    is_davao_voter: Yup.boolean().required("This field is required"),
-    is_government_project: Yup.boolean().required("This field is required"),
+    is_dangerzone: Yup.boolean().required("The dangerzone field is required"),
+    is_davao_voter: Yup.boolean().required("The davao voter field is required"),
+    is_government_project: Yup.boolean().required("The government project field is required"),
 
     structure_others: Yup.string()
         .nullable()

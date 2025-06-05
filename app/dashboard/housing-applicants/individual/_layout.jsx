@@ -23,7 +23,7 @@ export default function IndividualLayout() {
           headerShown: false,
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="application-form/[uuid]"
         options={{
           headerShown: true,
@@ -34,7 +34,7 @@ export default function IndividualLayout() {
             color: "#2680eb",
           },
         }}
-      />
+      /> */}
     </Stack>
   );
 }
