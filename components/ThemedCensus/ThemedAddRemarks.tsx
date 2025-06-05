@@ -132,7 +132,7 @@ const ThemedAddRemarks = ({ sex, uuid, attested_by, remarks, attested_signature 
             <ThemedButton
                 icon={() => <FontAwesome6 name="edit" size={14} color="#fff" />}
                 styleButton={[styles.button, { justifyContent: "center", }]}
-                children={"Add remarks"}
+                children={"Add Remarks"}
                 onPress={handleAddPlace}
             />
 

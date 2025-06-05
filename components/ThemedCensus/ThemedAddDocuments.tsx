@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View, Modal, TouchableWithoutFeedback, SafeAreaView, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Modal, TouchableWithoutFeedback, SafeAreaView, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 import { FontAwesome6 } from "@expo/vector-icons";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import { useColorScheme } from "react-native";
 import { Colors } from "../../constants/Colors";
-import { applicantDocumentService } from "../API/ApplicantDocumentService";
+import { applicationDocumentService } from "../API/applicationDocumentService";
 import { useEffect, useState } from 'react';
+import { format } from "date-fns";
 import * as DocumentPicker from 'expo-document-picker';
 import ThemedButton from '../../components/ThemedForm/ThemedButton';
 import ThemedSubmit from '../ThemedForm/ThemedSubmit';
@@ -12,6 +13,7 @@ import ThemedSubmit from '../ThemedForm/ThemedSubmit';
 const ThemedAddDocuments = ({ uuid }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
+    const [documents, setDocuments] = useState([]);
     const [uploadCompleted, setUploadCompleted] = useState({
         letter: false,
         certificate: false,
@@ -49,8 +51,9 @@ const ThemedAddDocuments = ({ uuid }) => {
             const params = {
                 applicant_uuid: uuid
             }
-            const response = await applicantDocumentService.getDocumentByUuid(params);
+            const response = await applicationDocumentService.getDocumentByUuid(params);
             if (response.data) {
+                setDocuments(response.data)
                 const docs = response.data;
                 setUploadCompleted({
                     letter: docs.some(doc => doc.document_type_id === 1),
@@ -76,8 +79,9 @@ const ThemedAddDocuments = ({ uuid }) => {
             params.append('applicant_uuid', uuid);
             params.append('document_type_id', currentDoc?.id);
             params.append('file', file);
-            const response = await applicantDocumentService.saveApplicantDocument(params)
+            const response = await applicationDocumentService.saveDocument(params)
             if (response.data) {
+                fetchDocuments()
                 successAlert(
                     "Successful",
                     "You have been successfully upload documents",
@@ -105,6 +109,26 @@ const ThemedAddDocuments = ({ uuid }) => {
         }
     };
 
+    const handleDeleteDocuments = async (uuid: string) => {
+        try {
+            setIsLoading(true)
+            const response = await applicationDocumentService.deleteDocument(uuid)
+            if (response.message) {
+                successAlert(
+                    "Successful",
+                    "You have been successfully delete documents",
+                    ALERT_TYPE.DANGER
+                );
+                setUploadedFiles({});
+                fetchDocuments()
+                setShowModal(false);
+            }
+        } catch (error) {
+            setErrors(error);
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     const handlePickFile = async () => {
         try {
@@ -163,6 +187,25 @@ const ThemedAddDocuments = ({ uuid }) => {
         );
     }
 
+    const renderItem = ({ item }) => (
+        <View style={styles.itemContainer}>
+            <View style={styles.itemTextContainer}>
+                <Text style={styles.placeText}>{item?.document_type?.name}</Text>
+                <Text style={styles.yearText}>{item.name}</Text>
+                <Text style={styles.created_at}>{format(item.created_at, "MMMM dd, yyyy")}</Text>
+            </View>
+            <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => {
+                    handleDeleteDocuments(item.uuid)
+                }}
+            >
+                <FontAwesome6 name="trash-can" size={14} color="#fff" style={styles.deleteIcon} />
+                <Text style={styles.deleteText}>Delete</Text>
+            </TouchableOpacity>
+        </View>
+    );
+
     return (
 
         <View style={styles.container}>
@@ -182,9 +225,15 @@ const ThemedAddDocuments = ({ uuid }) => {
                 <TouchableWithoutFeedback onPress={handleCloseModal}>
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalContainer}>
+                            <FlatList
+                                data={documents}
+                                renderItem={renderItem}
+                                keyExtractor={(item, index) => index.toString()}
+                                scrollEnabled={false}
+                            />
                             <View>
                                 {!allDocumentsUploaded && (
-                                    <View>
+                                    <View style={{ marginVertical: 15 }}>
                                         <ThemedButton
                                             children={
                                                 uploadedFiles[requiredDocuments[currentStep].key]
@@ -271,5 +320,54 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+    },
+    itemContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        padding: 10,
+        marginVertical: 5,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    itemTextContainer: {
+        flex: 1,
+    },
+    placeText: {
+        fontSize: 15,
+        fontWeight: '500',
+        color: '#2d3748',
+    },
+    yearText: {
+        fontSize: 12,
+        color: '#718096',
+        marginTop: 4,
+    },
+    created_at: {
+        fontSize: 10,
+        color: '#718096',
+        marginTop: 4,
+    },
+    deleteButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: '#f56565',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 4,
+    },
+    deleteText: {
+        color: '#fff',
+        fontWeight: '500',
+    },
+    deleteIcon: {
+        marginRight: 6,
     },
 });

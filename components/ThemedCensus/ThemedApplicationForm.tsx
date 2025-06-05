@@ -105,7 +105,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
             setErrors({});
 
         } catch (error) {
-            console.log(error)
+            setErrors(error)
         } finally {
             setRefreshing(false);
         }
@@ -290,8 +290,6 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
 
             if (response.data) {
                 const datas = response.data.application;
-                console.log(datas, ' samplesss')
-                // console.log(datas)
                 setForm(prev => ({
                     ...prev,
                     tag_number: datas?.tag_number,
@@ -333,7 +331,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
                 }));
             }
         } catch (error) {
-            console.log(error)
+            setErrors(error)
         } finally {
             setIsLoadingComponent(false)
         }
@@ -350,7 +348,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
                 setBarangays(formattedData);
             }
         } catch (error) {
-            console.log(error)
+            setErrors(error)
         }
     }
 
@@ -366,7 +364,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
                 }));
             }
         } catch (error) {
-            console.log(error)
+            setErrors(error)
         }
     }
 
@@ -428,7 +426,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
                 await fetchApplicant();
             }
         } catch (error) {
-            console.log(error)
+            setErrors(error)
         } finally {
             setIsLoadingComponent(false)
         }
@@ -822,7 +820,7 @@ const ThemedApplicationForm = ({ uuid, onSubmit, isLoading = false, onSubmitRema
                 <View style={{ flex: 1, padding: 5 }}>
                     <ThemedRadioBtn
                         required={true}
-                        label="Lot Occupancy"
+                        label="Lot occupancy"
                         onChangeText={(value) => {
                             setForm(prev => ({ ...prev, lot_occupancy: value }))
                             if (errors?.['lot_occupancy']) {

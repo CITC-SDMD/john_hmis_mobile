@@ -191,7 +191,7 @@ const IndividualScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 15,
   },
   loadingContainer: {
     flex: 1,

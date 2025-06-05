@@ -8,13 +8,13 @@ import { useState } from 'react'
 
 const createForm = () => {
   const { uuid } = useLocalSearchParams();
-  const [refreshKey, setRefreshKey] = useState(0);
+  // const [refreshKey, setRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const fetchApplicant = async () => {
-    setRefreshKey(prev => prev + 1);
-  };
+  // const fetchApplicant = async () => {
+  //   setRefreshKey(prev => prev + 1);
+  // };
 
   const handleSubmit = async (form) => {
     try {
@@ -48,34 +48,6 @@ const createForm = () => {
     }
   };
 
-  // const handleSubmitRemarks = async (remarks) => {
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append('applicant_uuid', uuid);
-  //     Object.entries(remarks).forEach(([key, value]) => {
-  //       if (key === 'attested_signature' && value && typeof value === 'object' && value.uri) {
-  //         formData.append('attested_signature', {
-  //           uri: value.uri,
-  //           name: value.name,
-  //           type: value.type,
-  //         });
-  //       } else if (key !== 'attested_signature') {
-  //         formData.append(key, value ?? '');
-  //       }
-  //     });
-  //     const response = await applicationService.saveRemarks(uuid, formData)
-  //     if (response.data) {
-  //       successAlert(
-  //         "Successful",
-  //         "You have been successfully created remarks",
-  //         ALERT_TYPE.SUCCESS
-  //       );
-  //       setErrors({});
-  //     }
-  //   } catch (error) {
-  //     console.log(error)
-  //   }
-  // };
 
   function successAlert(title, message, type) {
     Toast.show({
@@ -91,9 +63,9 @@ const createForm = () => {
         onSubmit={handleSubmit}
         isLoading={isLoading}
         error={errors}
-        // removeErrors={removeErrors}
-        // onSubmitRemarks={handleSubmitRemarks}
-        onRefreshApplicant={fetchApplicant}
+      // removeErrors={removeErrors}
+      // onSubmitRemarks={handleSubmitRemarks}
+      // onRefreshApplicant={fetchApplicant}
       // refreshKey={refreshKey}
       />
     </ThemedView >
