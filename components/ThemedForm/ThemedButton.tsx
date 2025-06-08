@@ -9,6 +9,7 @@ const ThemedButton = ({
     required = false,
     icon: IconComponent,
     children,
+    disabled = false,
 }) => {
     return (
         <View style={[styles.container, style]}>
@@ -23,6 +24,7 @@ const ThemedButton = ({
                 style={[styles.button, styleButton]}
                 onPress={onPress}
                 activeOpacity={0.7}
+                disabled={disabled}
             >
                 {IconComponent && (
                     <View style={styles.iconWrapper}>

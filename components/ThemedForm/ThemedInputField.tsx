@@ -14,6 +14,7 @@ const ThemedInputField = ({
   secureTextEntry = false,
   style,
   required = false,
+  editable,
   ...props
 }) => {
   const [hidePassword, setHidePassword] = useState(secureTextEntry);
@@ -37,6 +38,7 @@ const ThemedInputField = ({
           secureTextEntry={hidePassword}
           onChangeText={props.onChangeText}
           value={props.value}
+          editable={editable}
           {...props}
         />
         {showToggle && (

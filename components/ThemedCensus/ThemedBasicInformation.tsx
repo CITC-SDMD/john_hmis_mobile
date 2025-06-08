@@ -87,7 +87,6 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
         awarded: "",
         date: "",
         structure: null,
-
         attested_by: '',
         attested_signature: null,
         remarks: '',
@@ -110,19 +109,10 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
         }
     };
 
-    const close = (type = null) => {
+    const close = () => {
         setBirthdatePicker(false);
         setMarriedDatePicker(false);
         setLiveInDatePicker(false);
-        // if (type === 'birthdate') {
-        //     setHousehold(value => ({ ...value, household_birthdate: null }));
-        // }
-        // if (type === 'married_date') {
-        //     setForm(value => ({ ...value, married_date: null }));
-        // }
-        // if (type === 'live_in_date') {
-        //     setForm(value => ({ ...value, live_in_date: null }));
-        // }
     };
 
     const handleDateChange = (selectDate: any) => {
@@ -595,7 +585,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                     <ThemedDate
                         date={houseHold.houseHouldForm.household_birthdate || new Date()}
                         handleConfirm={handleDateChange}
-                        hidePicker={() => close('birthdate')}
+                        hidePicker={() => close()}
                         isPickerVisible={showBirthDatePicker}
                     />
                 </View>
@@ -662,7 +652,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                     <ThemedDate
                         date={form.married_date || new Date()}
                         handleConfirm={handleMarriedDateChange}
-                        hidePicker={() => close('married_date')}
+                        hidePicker={() => close()}
                         isPickerVisible={showMarriedDatePicker}
                     />
                     <ThemedError error={errors?.married_date || errors?.errors?.married_date?.[0]} />
@@ -690,7 +680,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                     <ThemedDate
                         date={form.live_in_date || new Date()}
                         handleConfirm={handleLiveInDateChange}
-                        hidePicker={() => close('live_in_date')}
+                        hidePicker={() => close()}
                         isPickerVisible={showLivingInDate}
                     />
                     <ThemedError error={errors?.live_in_date || errors?.errors?.live_in_date?.[0]} />
@@ -768,7 +758,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                             <ThemedDate
                                 date={form.spouse_birthdate || new Date()}
                                 handleConfirm={handleDateChange}
-                                hidePicker={() => close('birthdate')}
+                                hidePicker={() => close()}
                                 isPickerVisible={showBirthDatePicker}
                             />
                             <ThemedError error={errors?.spouse_birthdate || errors?.errors?.spouse_birthdate?.[0]} />

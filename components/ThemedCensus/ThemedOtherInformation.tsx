@@ -1,21 +1,21 @@
-import { StyleSheet, Text, View, ScrollView, RefreshControl } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, RefreshControl, SafeAreaView, ActivityIndicator } from 'react-native'
+import { useColorScheme } from "react-native";
+import { Colors } from "../../constants/Colors";
+import { applicantService } from "../API/ApplicantService";
+import { format } from "date-fns";
+import { FontAwesome6 } from "@expo/vector-icons";
+import ThemedOtherInformationValidation from "../Validation/ThemedOtherInformationValidation";
 import ThemedError from "../ThemedForm/ThemedError";
 import ThemedInputField from "../ThemedForm/ThemedInputField"
 import ThemedSubmit from '../ThemedForm/ThemedSubmit'
 import ThemedButton from "../ThemedForm/ThemedButton";
-import ThemedDate from "../ThemedForm/ThemedDate";
 import ThemedRadioBtn from "../ThemedForm/ThemedRadioBtn";
-import ThemedPlace from "./ThemedPlace"
-import ThemedRemarks from "./ThemedRemarks";
-import ThemedDocuments from "./ThemedDocuments";
-import ThemedDropdown from "../ThemedForm/ThemedDropdown";
-import ThemedOtherInformationValidation from "../Validation/ThemedOtherInformationValidation";
-import { FontAwesome6 } from "@expo/vector-icons";
 import * as DocumentPicker from 'expo-document-picker';
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
-const ThemedOtherInformation = ({ onSubmit, errors, setErrors }) => {
-
+const ThemedOtherInformation = ({ onSubmit, uuid }) => {
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme] ?? Colors.light;
     const [form, setForm] = useState({
         is_remittance: false,
         remittance: '',
@@ -27,18 +27,62 @@ const ThemedOtherInformation = ({ onSubmit, errors, setErrors }) => {
         applicant_signature: null,
     });
     const [refreshing, setRefreshing] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errors, setErrors] = useState(null)
 
     const onRefresh = () => {
-        setRefreshing(true);
         try {
+            setRefreshing(true);
             setErrors({})
-        } catch (error) {
+            setForm(prev => ({
+                ...prev,
 
+                is_remittance: false,
+                remittance: '',
+                have_property: false,
+                is_awarded: false,
+                awarded: '',
+                date: '',
+                phone_number: '',
+                applicant_signature: null,
+            }))
+            fetchApplicant();
+        } catch (error) {
+            setErrors(error)
         } finally {
             setRefreshing(false);
         }
 
     }
+
+    useEffect(() => {
+        fetchApplicant()
+    }, [])
+
+    const fetchApplicant = async () => {
+        try {
+            setIsLoading(true)
+            const response = await applicantService.getApplicantByUuid(uuid)
+            if (response.data) {
+                setForm(prev => ({
+                    ...prev,
+                    is_remittance: response.data.application.is_remittance,
+                    remittance: response.data.application.remittance,
+                    have_property: response.data.application.have_property,
+                    is_awarded: response.data.application.is_awarded,
+                    awarded: response.data.application.awarded,
+                    phone_number: response.data.phone_number,
+                    date: format(response.data.application.date, "MM/dd/yyyy"),
+                    applicant_signature: response.data.application.applicant_signature,
+                }))
+            }
+        } catch (error) {
+            setErrors(error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
 
     const handlePickStructureFile = async () => {
         try {
@@ -58,17 +102,47 @@ const ThemedOtherInformation = ({ onSubmit, errors, setErrors }) => {
                         type: file.mimeType || 'image/jpeg',
                     },
                 }));
+
+                if (errors?.['applicant_signature']) {
+                    setErrors(prev => ({ ...prev, applicant_signature: undefined }));
+                }
             }
-        } catch (err) {
-            console.error('Document Error:', err);
+        } catch (error) {
+            setErrors(error)
         }
     };
 
     const handleSubmit = async () => {
-        if (onSubmit) {
-            onSubmit(form);
+        try {
+            if (onSubmit) {
+                await ThemedOtherInformationValidation.validate(form, { abortEarly: false });
+                setErrors
+                onSubmit(form);
+            }
+        } catch (validationError: any) {
+            console.log(validationError)
+            const formattedErrors: any = {};
+            if (validationError.inner) {
+                validationError.inner.forEach((err: any) => {
+                    formattedErrors[err.path] = err.message;
+                });
+            }
+            setErrors((prev: any) => ({
+                ...prev,
+                ...formattedErrors,
+            }));
         }
     }
+
+    if (isLoading) {
+        return (
+            <SafeAreaView style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.primary} />
+                <Text style={{ color: theme.textLight }}>Loading data...</Text>
+            </SafeAreaView>
+        );
+    }
+
 
     return (
         <ScrollView refreshControl={
@@ -83,7 +157,9 @@ const ThemedOtherInformation = ({ onSubmit, errors, setErrors }) => {
                         required={true}
                         onChangeText={(value) => {
                             setForm(prev => ({ ...prev, is_remittance: value }))
-                            console.log(value)
+                            if (errors?.['is_remittance']) {
+                                setErrors(prev => ({ ...prev, is_remittance: undefined }));
+                            }
                         }}
                         options={[
                             { label: 'Yes', value: true },
@@ -101,7 +177,9 @@ const ThemedOtherInformation = ({ onSubmit, errors, setErrors }) => {
                             required={true}
                             onChangeText={(value) => {
                                 setForm(prev => ({ ...prev, remittance: value }))
-                                console.log(value)
+                                if (errors?.['remittance']) {
+                                    setErrors(prev => ({ ...prev, remittance: undefined }));
+                                }
                             }}
                             options={[
                                 { label: 'Local', value: 'local' },
@@ -120,7 +198,9 @@ const ThemedOtherInformation = ({ onSubmit, errors, setErrors }) => {
                         label={"Does the Household head/spouse own any real property in the Philippines"}
                         onChangeText={(value) => {
                             setForm(prev => ({ ...prev, have_property: value }))
-                            console.log(value)
+                            if (errors?.['have_property']) {
+                                setErrors(prev => ({ ...prev, have_property: undefined }));
+                            }
                         }}
                         options={[
                             { label: 'Yes', value: true },
@@ -138,7 +218,9 @@ const ThemedOtherInformation = ({ onSubmit, errors, setErrors }) => {
                         required={true}
                         onChangeText={(value) => {
                             setForm(prev => ({ ...prev, is_awarded: value }))
-                            console.log(value)
+                            if (errors?.['is_awarded']) {
+                                setErrors(prev => ({ ...prev, is_awarded: undefined }));
+                            }
                         }}
                         options={[
                             { label: 'Yes', value: true },
@@ -158,9 +240,9 @@ const ThemedOtherInformation = ({ onSubmit, errors, setErrors }) => {
                         value={form.awarded}
                         onChangeText={(value) => {
                             setForm(prev => ({ ...prev, awarded: value }))
-                            // if (errors?.['present_address']) {
-                            //     setErrors(prev => ({ ...prev, present_address: undefined }));
-                            // }
+                            if (errors?.['awarded']) {
+                                setErrors(prev => ({ ...prev, awarded: undefined }));
+                            }
                         }}
                     />
                     <ThemedError error={errors?.awarded || errors?.errors?.awarded?.[0]} />
@@ -188,6 +270,7 @@ const ThemedOtherInformation = ({ onSubmit, errors, setErrors }) => {
                     <ThemedInputField
                         label="Contact Number:"
                         keyboardType="numeric"
+                        editable={false}
                         value={form.phone_number}
                         onChangeText={(value) => {
                             setForm(prev => ({ ...prev, phone_number: value }));
@@ -198,6 +281,7 @@ const ThemedOtherInformation = ({ onSubmit, errors, setErrors }) => {
                 <View style={styles.inputBox}>
                     <ThemedInputField
                         label="Date:"
+                        editable={false}
                         value={form.date}
                         onChangeText={(value) => {
                             setForm(prev => ({ ...prev, date: value }));
@@ -234,7 +318,7 @@ export default ThemedOtherInformation
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: 10,
+        // marginTop: 10,
     },
     inputWrapper: {
         borderWidth: 1,
@@ -262,7 +346,7 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     noticeText: {
-        fontSize: 14,
+        fontSize: 16,
         color: '#333',
         textAlign: 'justify',
         lineHeight: 18,
@@ -276,5 +360,10 @@ const styles = StyleSheet.create({
     },
     submitButton: {
         width: "100%"
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
     },
 })

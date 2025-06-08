@@ -13,15 +13,15 @@ import {
 import { format } from "date-fns";
 import { useRouter } from "expo-router";
 import { FontAwesome6 } from "@expo/vector-icons";
-import ThemedError from "../../components/ThemedForm/ThemedError";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import { applicantSchedulesService } from "../../components/API/ApplicantSchedulesService";
 import { applicantService } from "../../components/API/ApplicantService";
-import ThemedCard from "../../components/ThemedForm/ThemedCard";
-import ThemedButton from "../ThemedForm/ThemedSubmit";
 import ThemedDateTimePicker from "../../components/ThemedForm/ThemedDateTimePicker";
 import ThemeIndividualMenu from "../../components/ThemedMenu/ThemeIndividualMenu";
 import ThemedLabel from "../../components/ThemedForm/ThemedLabel";
+import ThemedError from "../../components/ThemedForm/ThemedError";
+import ThemedCard from "../../components/ThemedForm/ThemedCard";
+import ThemedButton from "../ThemedForm/ThemedSubmit";
 
 const ApplicantList = ({
   data,
@@ -63,9 +63,11 @@ const ApplicantList = ({
       if (response.data) {
         resetModalStates();
         onToggleExpand(null);
+
         if (typeof onDataChanged === "function") {
-          onDataChanged();
+          onDataChanged('scheduled', selectedItem.uuid);
         }
+
         successAlert(
           "Create Successful",
           "You have been successfully created a schedule",
@@ -86,7 +88,7 @@ const ApplicantList = ({
       const response = await applicantService.deleteApplicant(item.uuid);
       if (response.message) {
         if (typeof onDataChanged === "function") {
-          onDataChanged();
+          onDataChanged('deleted', item.uuid);
         }
         successAlert(
           "Delete Successful",
@@ -109,7 +111,7 @@ const ApplicantList = ({
       );
       if (response.data) {
         if (typeof onDataChanged === "function") {
-          onDataChanged();
+          onDataChanged('cancelled', item.uuid);
         }
         successAlert(
           "Cancel Successful",
@@ -157,33 +159,48 @@ const ApplicantList = ({
       <>
         <TouchableOpacity onPress={() => onToggleExpand(item.id)}>
           <ThemedCard style={[styles.card, { backgroundColor: "#FBFDFF" }]}>
-            <Text style={styles.header}>
-              {item.firstname} {item.middlename} {item.lastname}
-            </Text>
+            <View style={styles.row}>
+              <View style={styles.pic}>
+                <Text style={styles.picText}>
+                  {item.firstname[0]?.toUpperCase()}
+                  {item.lastname[0]?.toUpperCase()}
+                </Text>
+              </View>
+              <View>
+                <View style={styles.nameContainer}>
+                  <Text style={styles.nameTxt} numberOfLines={1} ellipsizeMode="tail">
+                    {item.firstname} {item.middlename} {item.lastname}
+                  </Text>
+                </View>
+                <View style={styles.msgContainer}>
+                  <Text style={styles.msgTxt}>{item.phone_number}</Text>
+                </View>
+              </View>
+            </View>
+
 
             {isExpanded && (
               <View style={styles.details}>
                 <View>
-                  <Text style={styles.detailText}>
-                    Phone number: {item.phone_number || "N/A"}
-                  </Text>
-
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Text style={styles.detailText}>Schedule: </Text>
-                    <Text style={styles.detailText}>
-                      {item.schedule ? (
-                        format(new Date(item.schedule), "MMMM dd, yyyy, h:mm a")
-                      ) : (
-                        <View style={styles.iconFlex}>
-                          <View style={styles.iconPending} />
-                          <Text style={styles.detailText}>Pending</Text>
-                        </View>
-                      )}
-                    </Text>
+                  <View style={styles.scheduleContainer}>
+                    <Text style={styles.labelText}>Schedule:</Text>
+                    {item.schedule ? (
+                      <View style={styles.iconFlex}>
+                        <View style={styles.iconBlue} />
+                        <Text style={styles.detailText}>
+                          {format(new Date(item.schedule), "MMMM dd, yyyy, h:mm a")}
+                        </Text>
+                      </View>
+                    ) : (
+                      <View style={styles.iconFlex}>
+                        <View style={styles.iconPending} />
+                        <Text style={styles.pendingText}>Pending</Text>
+                      </View>
+                    )}
                   </View>
 
                   <View style={{ flexDirection: "row" }}>
-                    <Text style={styles.detailText}>Status:</Text>
+                    <Text style={styles.labelText}>Status:</Text>
                     {item?.application?.is_approved === true ? (
                       <View style={styles.iconFlex}>
                         <View style={styles.iconGreen} />
@@ -197,7 +214,7 @@ const ApplicantList = ({
                     ) : (
                       <View style={styles.iconFlex}>
                         <View style={styles.iconPending} />
-                        <Text style={styles.detailText}>Pending</Text>
+                        <Text style={styles.pendingText}>Pending</Text>
                       </View>
                     )}
                   </View>
@@ -207,7 +224,7 @@ const ApplicantList = ({
                       <View />
                     ) : (
                       <View style={{ flexDirection: "row" }}>
-                        <Text style={styles.detailText}>Reason:</Text>
+                        <Text style={styles.labelText}>Reason:</Text>
 
                         {item.is_cancelled === true ? (
                           <View style={styles.iconFlex}>
@@ -219,7 +236,7 @@ const ApplicantList = ({
                         ) : (
                           <View style={styles.iconFlex}>
                             <View style={styles.iconPending} />
-                            <Text style={styles.detailText}>Pending</Text>
+                            <Text style={styles.pendingText}>Pending</Text>
                           </View>
                         )}
                       </View>
@@ -260,14 +277,14 @@ const ApplicantList = ({
       <FlatList
         data={data}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id?.toString()}
+        keyExtractor={(item, index) => item.uuid ?? `fallback-${index}`}
         contentContainerStyle={{ paddingBottom: 100 }}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.1}
         refreshControl={
           <RefreshControl
             refreshing={isLoading}
-            onRefresh={() => onDataChanged()}
+            onRefresh={() => onDataChanged && onDataChanged('refresh')}
           />
         }
         ListEmptyComponent={
@@ -343,15 +360,11 @@ const styles = {
   card: {
     width: "100%",
     marginVertical: 10,
-    padding: 20,
+    padding: 15,
     paddingLeft: 14,
     borderLeftColor: "#2680eb",
     borderLeftWidth: 4,
     borderRadius: 3,
-  },
-  header: {
-    fontWeight: "400",
-    fontSize: 12,
   },
   details: {
     flexDirection: "row",
@@ -362,8 +375,9 @@ const styles = {
     borderTopColor: "#ccc",
   },
   detailText: {
-    marginVertical: 5,
-    fontSize: 11,
+    fontSize: 13,
+    color: '#333',
+    fontWeight: '500',
   },
   emptyText: {
     textAlign: "center",
@@ -406,7 +420,6 @@ const styles = {
     alignItems: "center",
     borderRadius: 5,
   },
-
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -426,33 +439,103 @@ const styles = {
     padding: 0,
     color: "#2D3748",
   },
-
-  iconPending: {
+  iconBlue: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#f59e0b",
-    marginRight: 3,
+    backgroundColor: "#0066CC",
+    marginRight: 6,
   },
   iconGreen: {
     width: 10,
     height: 10,
     borderRadius: 5,
     backgroundColor: "#22c55e",
-    marginRight: 3,
+    marginRight: 6,
   },
   iconCancel: {
     width: 10,
     height: 10,
     borderRadius: 5,
     backgroundColor: "#ef4444",
-    marginRight: 3,
+    marginRight: 6,
+
+  },
+  iconPending: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#FFA500',
+    marginRight: 6,
   },
   iconFlex: {
     flexDirection: "row",
     alignItems: "center",
     marginLeft: 4,
   },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#DCDCDC',
+    padding: 2,
+  },
+  pic: {
+    borderRadius: 60,
+    width: 60,
+    height: 60,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  picText: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: 280,
+  },
+  nameTxt: {
+    marginLeft: 15,
+    fontWeight: '600',
+    color: '#222',
+    fontSize: 15,
+    width: 170,
+  },
+  msgContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  msgTxt: {
+    fontWeight: '500',
+    color: '#0CB6F3',
+    fontSize: 12,
+    marginLeft: 15,
+  },
+  scheduleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  labelText: {
+    fontWeight: '600',
+    fontSize: 16,
+    color: '#333',
+    marginRight: 8,
+  },
+  iconFlex: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  pendingText: {
+    fontSize: 13,
+    color: '#333',
+    fontWeight: '500',
+  },
+
 };
 
 export default ApplicantList;

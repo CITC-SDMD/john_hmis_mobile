@@ -212,7 +212,7 @@ const ThemedAddDocuments = ({ uuid }) => {
             <ThemedButton
                 icon={() => <FontAwesome6 name="upload" size={14} color="#fff" />}
                 styleButton={[styles.button, { justifyContent: "center", }]}
-                children={"Upload Ducoments"}
+                children={"View Requirements"}
                 onPress={handleAddPlace}
             />
 
