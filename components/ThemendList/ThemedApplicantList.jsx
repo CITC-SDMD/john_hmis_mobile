@@ -520,8 +520,8 @@ const styles = {
     alignItems: 'center',
   },
   labelText: {
-    fontWeight: '600',
-    fontSize: 16,
+    fontWeight: '500',
+    fontSize: 15,
     color: '#333',
     marginRight: 8,
   },
@@ -529,10 +529,9 @@ const styles = {
     flexDirection: 'row',
     alignItems: 'center',
   },
-
   pendingText: {
     fontSize: 13,
-    color: '#333',
+    color: 'grey',
     fontWeight: '500',
   },
 

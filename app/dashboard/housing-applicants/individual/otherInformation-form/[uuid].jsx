@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native'
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { applicationService } from "../../../../../components/API/ApplicationService";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import ThemedView from "../../../../../components/ThemedForm/ThemedView";
@@ -20,16 +20,20 @@ const otherInformation = () => {
             formData.append('is_awarded', form.is_awarded);
             formData.append('awarded', form.awarded ?? '');
             if (form.applicant_signature) {
-                formData.append('applicant_signature', form.applicant_signature);
+                if (typeof form.applicant_signature === 'string') {
+                    formData.append('applicant_signature_url', form.applicant_signature);
+                } else if (form.applicant_signature) {
+                    formData.append('applicant_signature', form.applicant_signature);
+                }
             }
             const response = await applicationService.saveOtherInformation(uuid, formData)
             if (response.data) {
-                console.log(response.data, 'success')
                 successAlert(
                     "Successful",
                     "You have been successfully created application",
                     ALERT_TYPE.SUCCESS
                 );
+                router.push(`/dashboard/housing-applicants/individual`)
             }
         } catch (error) {
             setErrors(error)

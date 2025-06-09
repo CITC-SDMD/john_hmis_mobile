@@ -94,6 +94,7 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
 
             if (res.assets && res.assets.length > 0) {
                 const file = res.assets[0];
+                console.log(file, 'files')
                 setForm(prev => ({
                     ...prev,
                     applicant_signature: {
