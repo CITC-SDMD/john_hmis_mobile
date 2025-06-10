@@ -1,9 +1,10 @@
-import { StyleSheet, Text, View, ScrollView, RefreshControl, SafeAreaView, ActivityIndicator } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, RefreshControl, SafeAreaView, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native'
 import { useColorScheme } from "react-native";
 import { Colors } from "../../constants/Colors";
 import { applicantService } from "../API/ApplicantService";
 import { format } from "date-fns";
 import { FontAwesome6 } from "@expo/vector-icons";
+import ThemedHousehold from './ThemedHousehold';
 import ThemedOtherInformationValidation from "../Validation/ThemedOtherInformationValidation";
 import ThemedError from "../ThemedForm/ThemedError";
 import ThemedInputField from "../ThemedForm/ThemedInputField"
@@ -12,6 +13,7 @@ import ThemedButton from "../ThemedForm/ThemedButton";
 import ThemedRadioBtn from "../ThemedForm/ThemedRadioBtn";
 import * as DocumentPicker from 'expo-document-picker';
 import React, { useState, useEffect } from 'react'
+import { router } from 'expo-router';
 
 const ThemedOtherInformation = ({ onSubmit, uuid }) => {
     const colorScheme = useColorScheme();
@@ -26,6 +28,7 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
         phone_number: '',
         applicant_signature: null,
     });
+    const [household, setHousehold] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState(null)
@@ -64,6 +67,7 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
             setIsLoading(true)
             const response = await applicantService.getApplicantByUuid(uuid)
             if (response.data) {
+                console.log(response.data, 'ffffffffffff')
                 setForm(prev => ({
                     ...prev,
                     is_remittance: response.data.application.is_remittance,
@@ -75,6 +79,7 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
                     date: format(response.data.application.date, "MM/dd/yyyy"),
                     applicant_signature: response.data.application.applicant_signature,
                 }))
+                setHousehold(response.data.household_members)
             }
         } catch (error) {
             setErrors(error)
@@ -135,6 +140,11 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
         }
     }
 
+    const navigate = () => {
+        console.log('asdasd')
+        router.push(`/dashboard/housing-applicants/individual/houseHold-form/${uuid}`)
+    }
+
     if (isLoading) {
         return (
             <SafeAreaView style={styles.loadingContainer}>
@@ -144,14 +154,49 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
         );
     }
 
+    const renderItem = ({ item }) => (
+        <View style={styles.itemContainer}>
+            <View style={styles.itemTextContainer}>
+                <Text style={styles.placeText}>{item.firstname} {item.middlename}
+                    {item.lastname}
+                </Text>
+            </View>
+            <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => {
+                    // handleDeletePlace(item?.uuid)
+                }}
+            >
+                <FontAwesome6 name="edit" size={14} color="#fff" style={styles.deleteIcon} />
+                <Text style={styles.deleteText}>Edit</Text>
+            </TouchableOpacity>
+        </View>
+    );
+
 
     return (
         <ScrollView refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-            <Text style={{ fontWeight: "500", marginTop: 10 }} >III. OTHER INFORMATION</Text>
+            <View style={{ marginTop: 20 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontWeight: "700", color: "#333", marginTop: 10 }} >II. INFORMATION OF HOUSEHOLD MEMBERS</Text>
+                    <ThemedButton icon={() => <FontAwesome6 name="edit" size={14} color="#fff" />}
+                        styleButton={styles.button}
+                        children={"Add househould"}
+                        onPress={navigate} />
+                </View>
+                <FlatList
+                    data={household}
+                    renderItem={renderItem}
+                    keyExtractor={(item, index) => index.toString()}
+                    scrollEnabled={false}
+                />
+            </View>
 
-            <View style={[styles.inputWrapper, styles.row, { padding: 5, marginTop: 10 }]}>
+            <Text style={{ marginTop: 20, fontWeight: "700", color: "#333", }} >III. OTHER INFORMATION</Text>
+
+            <View style={[styles.inputWrapper, styles.row, { padding: 5, marginTop: 20 }]}>
                 <View style={{ flex: 1 }}>
                     <ThemedRadioBtn
                         label={"Does the family receive any remittances?"}
@@ -340,11 +385,24 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     noticeBox: {
-        backgroundColor: '#f0f4ff',
-        borderColor: '#2680eb',
-        borderWidth: 1,
-        borderRadius: 8,
+        // backgroundColor: '#f0f4ff',
+        // borderColor: '#2680eb',
+        // borderWidth: 1,
+        // borderRadius: 8,
+        // padding: 10,
+
+        alignItems: 'center',
+        backgroundColor: '#fff',
         padding: 10,
+        marginVertical: 5,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
     },
     noticeText: {
         fontSize: 16,
@@ -352,6 +410,9 @@ const styles = StyleSheet.create({
         textAlign: 'justify',
         lineHeight: 18,
         fontWeight: 'medium'
+    },
+    button: {
+        backgroundColor: "#2680eb",
     },
     bold: {
         fontWeight: '700',
@@ -366,5 +427,51 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+    },
+    itemContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        padding: 10,
+        marginVertical: 5,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    itemTextContainer: {
+        flex: 1,
+    },
+    placeText: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#2d3748',
+    },
+    yearText: {
+        fontSize: 14,
+        color: '#718096',
+        marginTop: 4,
+    },
+    deleteButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: '#2680eb',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 4,
+        width: "20%"
+    },
+    deleteText: {
+        color: '#fff',
+        fontWeight: '500',
+    },
+    deleteIcon: {
+        marginRight: 6,
     },
 })

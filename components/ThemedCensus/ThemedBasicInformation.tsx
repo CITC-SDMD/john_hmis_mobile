@@ -1198,7 +1198,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                 </View>
             </View>
             <View>
-                <ThemedPlace uuid={uuid} fetchApplicant={fetchAllData} />
+                <ThemedPlace uuid={uuid} fetchApplicant={fetchAllData} onSubmit={handleSubmit} />
                 <FlatList
                     data={houseHold.previous_residence}
                     renderItem={renderItem}

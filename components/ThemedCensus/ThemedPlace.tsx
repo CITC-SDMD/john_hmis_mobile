@@ -11,7 +11,7 @@ import ThemedInputField from '../ThemedForm/ThemedInputField';
 import ThemedSubmit from '../ThemedForm/ThemedSubmit';
 import React from 'react';
 
-const ThemedAddPlace = ({ uuid, fetchApplicant }) => {
+const ThemedAddPlace = ({ uuid, fetchApplicant, onSubmit }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     const [form, setForm] = useState({
@@ -33,6 +33,7 @@ const ThemedAddPlace = ({ uuid, fetchApplicant }) => {
             }
             const response = await applicantResidencesService.saveApplicantResidences(params)
             if (response.data) {
+                onSubmit()
                 setShowModal(false)
                 fetchApplicant();
                 successAlert(
