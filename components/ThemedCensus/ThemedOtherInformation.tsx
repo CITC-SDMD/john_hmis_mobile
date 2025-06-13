@@ -4,8 +4,7 @@ import { Colors } from "../../constants/Colors";
 import { applicantService } from "../API/ApplicantService";
 import { format } from "date-fns";
 import { FontAwesome6 } from "@expo/vector-icons";
-import ThemedHousehold from './ThemedHousehold';
-import ThemedOtherInformationValidation from "../Validation/ThemedOtherInformationValidation";
+import ThemedOtherInformationForm from "../Validation/ThemedOtherInformationForm";
 import ThemedError from "../ThemedForm/ThemedError";
 import ThemedInputField from "../ThemedForm/ThemedInputField"
 import ThemedSubmit from '../ThemedForm/ThemedSubmit'
@@ -67,7 +66,6 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
             setIsLoading(true)
             const response = await applicantService.getApplicantByUuid(uuid)
             if (response.data) {
-                console.log(response.data, 'ffffffffffff')
                 setForm(prev => ({
                     ...prev,
                     is_remittance: response.data.application.is_remittance,
@@ -87,7 +85,6 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
             setIsLoading(false)
         }
     }
-
 
     const handlePickStructureFile = async () => {
         try {
@@ -121,7 +118,7 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
     const handleSubmit = async () => {
         try {
             if (onSubmit) {
-                await ThemedOtherInformationValidation.validate(form, { abortEarly: false });
+                await ThemedOtherInformationForm.validate(form, { abortEarly: false });
                 setErrors
                 onSubmit(form);
             }
@@ -141,8 +138,11 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
     }
 
     const navigate = () => {
-        console.log('asdasd')
         router.push(`/dashboard/housing-applicants/individual/houseHold-form/${uuid}`)
+    }
+
+    const updateHousehold = (value) => {
+        router.push(`/dashboard/housing-applicants/individual/houseHold-form/update/${uuid}?household=${value}`)
     }
 
     if (isLoading) {
@@ -162,9 +162,9 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
                 </Text>
             </View>
             <TouchableOpacity
-                style={styles.deleteButton}
+                style={styles.updateButton}
                 onPress={() => {
-                    // handleDeletePlace(item?.uuid)
+                    updateHousehold(item?.uuid)
                 }}
             >
                 <FontAwesome6 name="edit" size={14} color="#fff" style={styles.deleteIcon} />
@@ -172,7 +172,6 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
             </TouchableOpacity>
         </View>
     );
-
 
     return (
         <ScrollView refreshControl={
@@ -354,7 +353,7 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
                 <ThemedError error={errors?.applicant_signature || errors?.errors?.applicant_signature?.[0]} />
             </View>
 
-            <ThemedSubmit title={"Submit"} style={[styles.submitButton, { marginTop: 10 }]} onPress={handleSubmit} />
+            <ThemedSubmit title={"Submit"} style={[styles.submitButton, { marginTop: 10, marginBottom: 20 }]} onPress={handleSubmit} />
         </ScrollView>
     )
 }
@@ -457,7 +456,7 @@ const styles = StyleSheet.create({
         color: '#718096',
         marginTop: 4,
     },
-    deleteButton: {
+    updateButton: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",

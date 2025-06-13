@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 
-const ThemedValidation = Yup.object().shape({
+const ThemedApplicationForm = Yup.object().shape({
     barangay: Yup.string().required("The barangay field is required"),
     admin_district: Yup.string().required("The admin district field is required"),
     sex: Yup.string().required("The sex field is required"),
@@ -131,4 +131,4 @@ const ThemedValidation = Yup.object().shape({
         }),
 });
 
-export default ThemedValidation;
+export default ThemedApplicationForm;

@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native'
-import { useLocalSearchParams, router } from "expo-router";
+import { useLocalSearchParams, router, useRouter } from "expo-router";
 import { applicationService } from "../../../../../components/API/ApplicationService";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import ThemedView from "../../../../../components/ThemedForm/ThemedView";
@@ -47,7 +47,6 @@ const otherInformation = () => {
             type: type,
         });
     }
-
 
     return (
         <ThemedView style={[styles.container, { paddingHorizontal: 10 }]} safe={true}>

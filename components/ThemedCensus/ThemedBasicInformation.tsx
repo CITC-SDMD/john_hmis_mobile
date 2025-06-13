@@ -19,7 +19,7 @@ import ThemedPlace from "./ThemedPlace"
 import ThemedRemarks from "./ThemedRemarks";
 import ThemedDocuments from "./ThemedDocuments";
 import ThemedDropdown from "../ThemedForm/ThemedDropdown";
-import ThemedValidation from "../Validation/ThemedApplicationForm"
+import ThemedApplicationForm from "../Validation/ThemedApplicationForm"
 
 const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
     const previousStatusRef = useRef('');
@@ -101,7 +101,6 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
             fetchBarangay();
             setForm(value => ({ ...value, structure: '' }));
             setErrors({});
-
         } catch (error) {
             setErrors(error)
         } finally {
@@ -359,7 +358,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
 
     const handleSubmit = async () => {
         try {
-            await ThemedValidation.validate(form, { abortEarly: false });
+            await ThemedApplicationForm.validate(form, { abortEarly: false });
             setErrors({});
             if (onSubmit) {
                 onSubmit(form);
@@ -880,8 +879,8 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                 <ThemedError error={errors?.year_resided || errors?.errors?.year_resided?.[0]} />
             </View>
 
-            <View style={[styles.inputWrapper, styles.row]}>
-                <View style={{ flex: 1, padding: 5 }}>
+            <View style={[styles.row]}>
+                <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
                     <ThemedRadioBtn label={"Type of structure "}
                         required={true}
                         onChangeText={(value) => {
@@ -1207,7 +1206,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                 />
             </View>
 
-            <ThemedSubmit title={"Next"} style={[styles.submitButton, { marginTop: 10 }]} onPress={handleSubmit} />
+            <ThemedSubmit title={"Next"} style={[styles.submitButton, { marginTop: 10, marginBottom: 20 }]} onPress={handleSubmit} />
         </ScrollView >
     )
 }

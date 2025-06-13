@@ -10,8 +10,8 @@ export default function TabLayout() {
 
   const hideTabPaths = [
     "/dashboard/housing-applicants/individual/basicInformation-form/",
-    "/dashboard/housing-applicants/individual/otherInformation-form/"
-
+    "/dashboard/housing-applicants/individual/otherInformation-form/",
+    "/dashboard/housing-applicants/individual/houseHold-form/"
   ]
 
   const hideTabs = hideTabPaths.some(path => pathname.startsWith(path));

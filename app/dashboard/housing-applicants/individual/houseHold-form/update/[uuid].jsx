@@ -1,13 +1,21 @@
-import { StyleSheet } from 'react-native'
-import ThemedView from "../../../../../components/ThemedForm/ThemedView";
-import ThemedHousehold from "../../../../../components/ThemedCensus/ThemedHousehold";
-import { applicantHouseholdMemberService } from "../../../../../components/API/ApplicantHouseholdMemberService";
-import { useLocalSearchParams, router, useRouter } from "expo-router";
+import { StyleSheet, Text, View } from 'react-native'
+import { useLocalSearchParams, router } from "expo-router";
+import ThemedView from "../../../../../../components/ThemedForm/ThemedView";
+import ThemedHousehold from "../../../../../../components/ThemedCensus/ThemedHousehold";
+import { applicantHouseholdMemberService } from "../../../../../../components/API/ApplicantHouseholdMemberService";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
-import { useState } from 'react'
+import { useState, useEffect } from 'react';
 
-const householdCreate = () => {
-    const { uuid } = useLocalSearchParams();
+const updateHousehold = () => {
+    const {
+        household,
+        uuid
+    } = useLocalSearchParams();
+
+    // useEffect(() => {
+    //     console.log('Applicantuuid', uuid)
+    //     console.log('household', household)
+    // }, [])
     const [errors, setErrors] = useState({});
 
     const handleSubmit = async (form) => {
@@ -18,7 +26,7 @@ const householdCreate = () => {
                 middlename: form.middlename,
                 lastname: form.lastname,
                 relationship_id: form.relationship_id,
-                birthdate: form.birthdate,
+                birthdate: form.birthdate ? new Date(form.birthdate) : null,
                 age: form.age,
                 sex: form.sex,
                 civil_status: form.civil_status,
@@ -31,7 +39,7 @@ const householdCreate = () => {
                 other_skills: form.other_skills,
                 occupation: form.occupation,
                 other_occupation: form.other_occupation,
-                monthly_income: form.monthly_income,
+                monthly_income: form.monthly_income ? form.monthly_income.replace(/[^0-9]/g, '') : "",
                 sss: form.sss ?? false,
                 gsis: form.gsis ?? false,
                 philhealth: form.philhealth ?? false,
@@ -40,17 +48,21 @@ const householdCreate = () => {
                 pension_source: form.pension_source,
                 monthly_pension: form.monthly_pension
             }
-            const response = await applicantHouseholdMemberService.saveApplicantHousehold(params)
+            console.log("Simplified params:", params);
+            const response = await applicantHouseholdMemberService.updateApplicantHousehold(uuid, params)
             if (response.data) {
-                successAlert(
-                    "Successful",
-                    "You have been successfully created household member",
-                    ALERT_TYPE.SUCCESS
-                );
-                router.back();
+                console.log(response.data)
+                // successAlert(
+                //     "Successful",
+                //     "You have been successfully updated household member",
+                //     ALERT_TYPE.SUCCESS
+                // );
+                // router.back();
             }
         } catch (error) {
             setErrors(error)
+            console.log(error)
+
         }
     }
 
@@ -64,12 +76,12 @@ const householdCreate = () => {
 
     return (
         <ThemedView style={[styles.container, { paddingHorizontal: 10 }]} safe={true}>
-            <ThemedHousehold onSubmit={handleSubmit} />
+            <ThemedHousehold onSubmit={handleSubmit} householdUuid={household} />
         </ThemedView>
     )
 }
 
-export default householdCreate
+export default updateHousehold
 
 const styles = StyleSheet.create({
     container: {

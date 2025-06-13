@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 
-const ThemedOtherInformationValidation = Yup.object().shape({
+const ThemedOtherInformationForm = Yup.object().shape({
     is_remittance: Yup.boolean()
         .required("The is remittance field is required"),
     remittance: Yup.string()
@@ -25,4 +25,4 @@ const ThemedOtherInformationValidation = Yup.object().shape({
 
 });
 
-export default ThemedOtherInformationValidation;
+export default ThemedOtherInformationForm;
