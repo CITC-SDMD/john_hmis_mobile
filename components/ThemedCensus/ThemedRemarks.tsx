@@ -147,14 +147,11 @@ const ThemedAddRemarks = ({ sex, uuid, attested_by, remarks, attested_signature 
                         <View style={styles.modalContainer}>
                             <View>
                                 <ThemedDropdown
-                                    label="Remarks "
+                                    label="Remarks"
                                     required={true}
                                     value={form.remarks}
-                                    onChangeText={(value) => {
-                                        setForm({ ...form, remarks: value });
-                                    }}
+                                    onChangeText={(value => setForm({ ...form, remarks: value }))}
                                     items={remarksList}
-                                    icon={() => <FontAwesome6 name="chevron-down" size={14} color="#2680eb" />}
                                 />
                                 <ThemedError error={errors?.remarks || errors?.errors?.remarks?.[0]} />
                             </View>
@@ -225,6 +222,7 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 10,
         width: '80%',
+        maxHeight: '80%'
     },
     modalTitle: {
         fontSize: 14,

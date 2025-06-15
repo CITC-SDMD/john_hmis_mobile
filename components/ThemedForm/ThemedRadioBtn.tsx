@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-const ThemedRadioBtn = ({ label, required, options, onChangeText, selected, style }) => {
+const ThemedRadioBtn = ({ label, required, options, onChangeText, selected, style, styleWidth }) => {
     const [selectedOption, setSelectedOption] = useState(selected);
 
     useEffect(() => {
@@ -16,17 +16,17 @@ const ThemedRadioBtn = ({ label, required, options, onChangeText, selected, styl
     return (
         <View style={[styles.container, style]}>
             {label && (
-                <Text style={styles.groupLabel}>
-                    {label}
-                    {required && <Text style={{ color: "red" }}> *</Text>}
-                </Text>
+                <View style={styles.labelContainer}>
+                    <Text style={styles.label}>{label}</Text>
+                    {required && <Text style={{ color: 'red', marginLeft: 4 }}>*</Text>}
+                </View>
             )}
 
             <View style={styles.row}>
                 {options.map((option) => (
                     <TouchableOpacity
                         key={option.value}
-                        style={styles.option}
+                        style={[styleWidth, styles.option]}
                         onPress={() => handleSelect(option.value)}
                     >
                         <View style={styles.radioOuter}>
@@ -43,42 +43,45 @@ const ThemedRadioBtn = ({ label, required, options, onChangeText, selected, styl
 export default ThemedRadioBtn;
 
 const styles = StyleSheet.create({
-    container: {},
-    groupLabel: {
+    container: {
+        width: "100%",
+        marginBottom: 16,
+    },
+    label: {
         fontSize: 14,
-        fontWeight: "500",
-        color: "#2D3748",
-        marginBottom: 5,
+        color: '#4A5568',
+        marginBottom: 8,
+        fontWeight: '600'
+    },
+    labelContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
     },
     row: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        marginBottom: 10,
     },
     option: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginRight: 12,
-        marginBottom: 8,
+        marginRight: 10,
+        marginBottom: 10,
     },
     radioOuter: {
         height: 18,
         width: 18,
         borderRadius: 9,
         borderWidth: 2,
-        borderColor: '#999',
+        borderColor: '#D5DCE4',
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 6,
+        marginRight: 8,
+        backgroundColor: '#fff',
     },
     radioInner: {
         height: 8,
         width: 8,
         borderRadius: 4,
         backgroundColor: '#007AFF',
-    },
-    label: {
-        fontSize: 14,
-        color: '#333',
     },
 });

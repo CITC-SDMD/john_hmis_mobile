@@ -45,9 +45,9 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 14,
-        fontWeight: "500",
-        color: "#2D3748",
-        marginBottom: 5,
+        color: '#4A5568',
+        marginBottom: 8,
+        fontWeight: '600'
     },
     button: {
         flexDirection: "row",

@@ -31,7 +31,6 @@ export const useAuthDatabase = () => {
       `);
 
             setIsDbInitialized(true);
-            // console.log('Database initialized successfully');
         } catch (error) {
             console.error('Error initializing database:', error);
             checkAsyncStorageToken();
@@ -52,17 +51,14 @@ export const useAuthDatabase = () => {
     const checkExistingToken = async () => {
         try {
             if (!db) {
-                // console.log('Database not initialized, checking AsyncStorage');
                 await checkAsyncStorageToken();
                 return;
             }
 
             const result = await db.getFirstAsync('SELECT token FROM user ORDER BY id DESC LIMIT 1');
-            // console.log('Database result:', result);
 
             if (result && result.token) {
                 await AsyncStorage.setItem("_token", result.token);
-                // console.log('Token found in database:', result.token);
                 router.replace("/dashboard");
             } else {
                 await checkAsyncStorageToken();
@@ -76,13 +72,11 @@ export const useAuthDatabase = () => {
     const saveTokenToDB = async (token: string) => {
         try {
             if (!db) {
-                // console.log('Database not available, skipping DB save');
                 return;
             }
 
             await db.runAsync('DELETE FROM user');
             await db.runAsync('INSERT INTO user (token) VALUES (?)', [token]);
-            // console.log('Token saved to database successfully');
         } catch (error) {
             console.error('Error saving token to database:', error);
         }
@@ -92,7 +86,6 @@ export const useAuthDatabase = () => {
         try {
             await db.runAsync('DELETE FROM user');
             await AsyncStorage.removeItem("_token");
-            // console.log('Token cleared from database and AsyncStorage successfully');
         } catch (error) {
             console.error('Error clearing token from DB:', error);
         }

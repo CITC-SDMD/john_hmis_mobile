@@ -96,9 +96,7 @@ const AssocationForm = () => {
                 specificLocation: form.specificLocation,
                 otherLocation: form.otherLocation,
                 court_Order: form.court_Order,
-
             };
-            console.log('dada', params)
             const response = await applicationService.saveApplication(params);
             if (response.data) {
                 setErrors({});
@@ -107,9 +105,6 @@ const AssocationForm = () => {
 
         } catch (error) {
             setErrors(error);
-
-            console.log(error)
-
             Toast.show({
                 title: 'Validation Error',
                 type: ALERT_TYPE.DANGER,
@@ -173,7 +168,6 @@ const AssocationForm = () => {
     // const [specificLocation, setSpecificLocation] = useState('');
     // const headers = ['Place', 'Inclusive Date', 'Action'];
     // const handleRadioChange = (value) => {
-    //     console.log('Selected:', value);
     // };
     // const closeModal = () => modalVisible(false);
     // const validateDate = (text) => {
@@ -212,7 +206,6 @@ const AssocationForm = () => {
                         style={{ marginVertical: 10 }}
                         label="Options"
                         theme={{ blue: "#2680eb", white: "#ffffff" }}
-                        onRemarks={() => console.log("Remarks tapped")}
                     />
                 </View>
 

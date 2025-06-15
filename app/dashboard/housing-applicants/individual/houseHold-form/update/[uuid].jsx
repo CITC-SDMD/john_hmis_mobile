@@ -4,6 +4,7 @@ import ThemedView from "../../../../../../components/ThemedForm/ThemedView";
 import ThemedHousehold from "../../../../../../components/ThemedCensus/ThemedHousehold";
 import { applicantHouseholdMemberService } from "../../../../../../components/API/ApplicantHouseholdMemberService";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
+import { format } from "date-fns";
 import { useState, useEffect } from 'react';
 
 const updateHousehold = () => {
@@ -11,11 +12,6 @@ const updateHousehold = () => {
         household,
         uuid
     } = useLocalSearchParams();
-
-    // useEffect(() => {
-    //     console.log('Applicantuuid', uuid)
-    //     console.log('household', household)
-    // }, [])
     const [errors, setErrors] = useState({});
 
     const handleSubmit = async (form) => {
@@ -26,7 +22,7 @@ const updateHousehold = () => {
                 middlename: form.middlename,
                 lastname: form.lastname,
                 relationship_id: form.relationship_id,
-                birthdate: form.birthdate ? new Date(form.birthdate) : null,
+                birthdate: form.birthdate ? format(form.birthdate, 'yyyy-MM-dd') : null,
                 age: form.age,
                 sex: form.sex,
                 civil_status: form.civil_status,
@@ -39,30 +35,26 @@ const updateHousehold = () => {
                 other_skills: form.other_skills,
                 occupation: form.occupation,
                 other_occupation: form.other_occupation,
-                monthly_income: form.monthly_income ? form.monthly_income.replace(/[^0-9]/g, '') : "",
+                monthly_income: form.monthly_income,
                 sss: form.sss ?? false,
                 gsis: form.gsis ?? false,
                 philhealth: form.philhealth ?? false,
                 fourPs: form.fourPs ?? false,
                 others: form.others ?? false,
                 pension_source: form.pension_source,
-                monthly_pension: form.monthly_pension
+                monthly_pension: form.monthly_pension,
             }
-            console.log("Simplified params:", params);
-            const response = await applicantHouseholdMemberService.updateApplicantHousehold(uuid, params)
+            const response = await applicantHouseholdMemberService.updateApplicantHousehold(household, params)
             if (response.data) {
-                console.log(response.data)
-                // successAlert(
-                //     "Successful",
-                //     "You have been successfully updated household member",
-                //     ALERT_TYPE.SUCCESS
-                // );
-                // router.back();
+                successAlert(
+                    "Successful",
+                    "You have been successfully updated household member",
+                    ALERT_TYPE.SUCCESS
+                );
+                router.back();
             }
         } catch (error) {
             setErrors(error)
-            console.log(error)
-
         }
     }
 

@@ -13,9 +13,11 @@ import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import ThemedCustomButton from "../../components/ThemedForm/ThemedSubmit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthDatabase } from "../../components/hooks/useAuthDatabase";
+import { useState } from "react";
 
 const CustomDrawerContent = (props) => {
   const { clearToken } = useAuthDatabase();
+  const [errors, setErrors] = useState({})
   const resetUser = useUserStore((state) => state.resetUser);
 
   async function handleLogout() {
@@ -23,24 +25,22 @@ const CustomDrawerContent = (props) => {
       try {
         const response = await authService.logout();
         if (response) {
-          console.log(response)
+          successAlert(
+            "Logout Successful",
+            "You have been successfully logged out",
+            ALERT_TYPE.SUCCESS
+          );
         }
       } catch (error) {
-        console.warn("Logout API failed:", error);
+        setErrors(error)
       }
 
       await AsyncStorage.removeItem("_token");
       await clearToken();
       resetUser();
-
-      successAlert(
-        "Logout Successful",
-        "You have been successfully logged out",
-        ALERT_TYPE.SUCCESS
-      );
       router.replace("/login");
     } catch (error) {
-      console.error("Logout error:", error);
+      setErrors(error)
     }
   }
 

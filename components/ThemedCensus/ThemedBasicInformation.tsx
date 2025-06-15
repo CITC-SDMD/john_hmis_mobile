@@ -4,10 +4,11 @@ import { barangayService } from "../API/BarangayService";
 import { applicantService } from "../API/ApplicantService";
 import { applicantResidencesService } from "../API/applicantResidencesService";
 import { FontAwesome6 } from "@expo/vector-icons";
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { format } from "date-fns";
 import { useColorScheme } from "react-native";
 import { Colors } from "../../constants/Colors";
+import { useFocusEffect } from '@react-navigation/native';
 import * as DocumentPicker from 'expo-document-picker';
 import ThemedError from "../ThemedForm/ThemedError";
 import ThemedInputField from "../ThemedForm/ThemedInputField"
@@ -26,15 +27,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     const [refreshing, setRefreshing] = useState(false);
-    const [showBirthDatePicker, setBirthdatePicker] = useState(false);
-    const [showLivingInDate, setLiveInDatePicker] = useState(false);
-    const [showMarriedDatePicker, setMarriedDatePicker] = useState(false);
-
-    const showBirthDate = () => setBirthdatePicker(true);
-    const showMarriedDate = () => setMarriedDatePicker(true);
-    const showLiveInDate = () => setLiveInDatePicker(true);
     const [barangays, setBarangays] = useState([]);
-
     const [houseHold, setHousehold] = useState({
         houseHouldForm: {
             household_firstname: "",
@@ -108,31 +101,26 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
         }
     };
 
-    const close = () => {
-        setBirthdatePicker(false);
-        setMarriedDatePicker(false);
-        setLiveInDatePicker(false);
-    };
-
-    const handleDateChange = (selectDate: any) => {
+    const handleDateChange = (date) => {
         setHousehold(value => ({
             ...value,
             houseHouldForm: {
                 ...value.houseHouldForm,
-                household_birthdate: selectDate
+                household_birthdate: date
             }
         }));
-        close();
     };
+
+    const handleDateChangeSpouse = (selectDate: any) => {
+        setForm(value => ({ ...value, spouse_birthdate: selectDate }));
+    }
 
     const handleMarriedDateChange = (selectDate: any) => {
         setForm(value => ({ ...value, married_date: selectDate }))
-        close();
     }
 
     const handleLiveInDateChange = (selectDate: any) => {
         setForm(value => ({ ...value, live_in_date: selectDate }))
-        close();
     }
 
     const project_type = [
@@ -201,6 +189,16 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
     }, [form.rent_without_consent_location])
 
     useEffect(() => {
+        if (form.is_dangerzone === false) {
+            setForm(value => ({
+                ...value,
+                hazard_others: '',
+                hazard: '',
+            }))
+        }
+    }, [form.is_dangerzone])
+
+    useEffect(() => {
         if (form.is_government_project === false) {
             setForm(value => ({ ...value, project_type: '' }))
         }
@@ -222,9 +220,15 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
         await fetchApplicant();
     };
 
-    useEffect(() => {
-        fetchAllData();
-    }, [])
+    // useEffect(() => {
+    //     fetchAllData();
+    // }, [])
+
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchAllData()
+        }, [uuid])
+    );
 
     useEffect(() => {
         if (form.barangay) {
@@ -498,7 +502,6 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                             }
                         }}
                         items={barangays}
-                        icon={() => <FontAwesome6 name="chevron-down" size={14} color="#2680eb" />}
                     />
                     <ThemedError error={errors?.barangay || errors?.errors?.barangay?.[0]} />
                 </View>
@@ -569,29 +572,18 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
 
                 {/* Birtdate household Head */}
                 <View style={{ flex: 1 }}>
-                    <ThemedButton label="Birthdate" onPress={showBirthDate}
-                        icon={() => <FontAwesome6 name="calendar" size={18} color="#2680eb" />}
-                    >
-                        <TextInput
-                            style={styles.inputWithIcon}
-                            value={houseHold.houseHouldForm.household_birthdate ? format(houseHold.houseHouldForm.household_birthdate, "MMMM dd, yyyy") : ""}
-                            editable={false}
-                            pointerEvents="none"
-                            placeholder="Select date"
-                            placeholderTextColor="#A0AEC0"
-                        />
-                    </ThemedButton>
                     <ThemedDate
-                        date={houseHold.houseHouldForm.household_birthdate || new Date()}
-                        handleConfirm={handleDateChange}
-                        hidePicker={() => close()}
-                        isPickerVisible={showBirthDatePicker}
+                        label="Select a Date"
+                        required={true}
+                        value={houseHold.houseHouldForm.household_birthdate}
+                        onChange={handleDateChange}
+                        placeholder="Tap here to pick a date"
                     />
                 </View>
             </View>
 
-            <View style={[styles.inputWrapper, styles.row, { padding: 5 }]}>
-                <View style={{ flex: 1 }}>
+            <View style={[styles.row]}>
+                <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
                     <ThemedRadioBtn label={"Sex"}
                         required={true}
                         onChangeText={(value) => {
@@ -605,12 +597,12 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                             { label: 'Female', value: 'female' },
                         ]}
                         selected={form.sex}
+                        styleWidth={{ width: '30%' }}
                     />
                     <ThemedError error={errors?.sex || errors?.errors?.sex?.[0]} />
-
                 </View>
 
-                <View style={{ flex: 1 }}>
+                <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
                     <ThemedRadioBtn label={"Civil status"}
                         required={true}
                         onChangeText={(value) => {
@@ -627,6 +619,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                             { label: 'Widowed', value: 'widowed' },
                         ]}
                         selected={form.civil_status}
+                        styleWidth={{ width: '40%' }}
                     />
                     <ThemedError error={errors?.civil_status || errors?.errors?.civil_status?.[0]} />
                 </View>
@@ -636,23 +629,12 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
             {/* married */}
             {form.civil_status === 'married' && (
                 <View style={{ flex: 1, marginTop: 10 }}>
-                    <ThemedButton label="Date of marriage" onPress={showMarriedDate}
-                        required={true}
-                        icon={() => <FontAwesome6 name="calendar" size={18} color="#2680eb" />}>
-                        <TextInput
-                            style={styles.inputWithIcon}
-                            value={form.married_date ? format(form.married_date, "MMMM dd, yyyy") : null}
-                            editable={false}
-                            pointerEvents="none"
-                            placeholder="Select date"
-                            placeholderTextColor="#A0AEC0"
-                        />
-                    </ThemedButton>
                     <ThemedDate
-                        date={form.married_date || new Date()}
-                        handleConfirm={handleMarriedDateChange}
-                        hidePicker={() => close()}
-                        isPickerVisible={showMarriedDatePicker}
+                        label="Date of marriage"
+                        required={true}
+                        value={form.married_date}
+                        onChange={handleMarriedDateChange}
+                        placeholder="Select date"
                     />
                     <ThemedError error={errors?.married_date || errors?.errors?.married_date?.[0]} />
 
@@ -662,25 +644,12 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
             {/* live_in */}
             {form.civil_status === 'live_in' && (
                 <View style={{ flex: 1, marginTop: 10 }}>
-                    <ThemedButton label="Date of Living in" onPress={showLiveInDate}
-                        required={true}
-                        icon={(props: any) => (
-                            <FontAwesome6 name="calendar" size={18} color="#fff" {...props} />
-                        )}>
-                        <TextInput
-                            style={styles.inputWithIcon}
-                            value={form.live_in_date ? format(form.live_in_date, "MMMM dd, yyyy") : ""}
-                            editable={false}
-                            pointerEvents="none"
-                            placeholder="Select date"
-                            placeholderTextColor="#A0AEC0"
-                        />
-                    </ThemedButton>
                     <ThemedDate
-                        date={form.live_in_date || new Date()}
-                        handleConfirm={handleLiveInDateChange}
-                        hidePicker={() => close()}
-                        isPickerVisible={showLivingInDate}
+                        label="Date of Living in"
+                        required={true}
+                        value={form.live_in_date}
+                        onChange={handleLiveInDateChange}
+                        placeholder="Select date"
                     />
                     <ThemedError error={errors?.live_in_date || errors?.errors?.live_in_date?.[0]} />
                 </View>
@@ -740,25 +709,12 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
 
                         {/* BirthDate spouse */}
                         <View style={{ flex: 1 }}>
-                            <ThemedButton label="Birthdate" onPress={showBirthDate}
-                                required={true}
-                                icon={(props: any) => (
-                                    <FontAwesome6 name="calendar" size={18} color="#fff" {...props} />
-                                )}>
-                                <TextInput
-                                    style={styles.inputWithIcon}
-                                    value={form.spouse_birthdate ? format(form.spouse_birthdate, "MMMM dd, yyyy") : ""}
-                                    editable={false}
-                                    pointerEvents="none"
-                                    placeholder="Select date"
-                                    placeholderTextColor="#A0AEC0"
-                                />
-                            </ThemedButton>
                             <ThemedDate
-                                date={form.spouse_birthdate || new Date()}
-                                handleConfirm={handleDateChange}
-                                hidePicker={() => close()}
-                                isPickerVisible={showBirthDatePicker}
+                                label="Birthdate"
+                                required={true}
+                                value={form.spouse_birthdate}
+                                onChange={handleDateChangeSpouse}
+                                placeholder="Select date"
                             />
                             <ThemedError error={errors?.spouse_birthdate || errors?.errors?.spouse_birthdate?.[0]} />
                         </View>
@@ -781,8 +737,8 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                 <ThemedError error={errors?.present_address || errors?.errors?.present_address?.[0]} />
             </View>
 
-            <View style={[styles.inputWrapper, { flexDirection: 'row', justifyContent: 'space-between', gap: 20 }]}>
-                <View style={{ flex: 1, padding: 5 }}>
+            <View style={[styles.row, {}]}>
+                <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
                     <ThemedRadioBtn
                         required={true}
                         label="Housing occupancy"
@@ -801,11 +757,12 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                             { label: 'Rent free without owners consent', value: 'rentfree_without_consent' },
                         ]}
                         selected={form.housing_occupancy}
+                        styleWidth={{ width: '50%' }}
                     />
                     <ThemedError error={errors?.housing_occupancy || errors?.errors?.housing_occupancy?.[0]} />
                 </View>
 
-                <View style={{ flex: 1, padding: 5 }}>
+                <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
                     <ThemedRadioBtn
                         required={true}
                         label="Lot occupancy"
@@ -824,6 +781,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                             { label: 'Rent free without owners consent', value: 'rentfree_without_consent' },
                         ]}
                         selected={form.lot_occupancy}
+                        styleWidth={{ width: '50%' }}
                     />
                     <ThemedError error={errors?.lot_occupancy || errors?.errors?.lot_occupancy?.[0]} />
                 </View>
@@ -896,11 +854,12 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                             { label: 'Others', value: 'others' },
                         ]}
                         selected={form.structure_type}
+                        styleWidth={{ width: '40%' }}
                     />
                     <ThemedError error={errors?.structure_type || errors?.errors?.structure_type?.[0]} />
                 </View>
 
-                <View style={{ flex: 1, padding: 5 }}>
+                <View style={{ flex: 1, }}>
                     <ThemedInputField
                         required={true}
                         label="No. of storeys"
@@ -986,6 +945,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                         { label: 'Others', value: 'others' },
                     ]}
                     selected={form.rent_without_consent_location}
+                    styleWidth={{ width: '30%' }}
                 />
             </View>
 
@@ -1001,10 +961,10 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                 )
             }
 
-            <View style={[styles.row, styles.inputWrapper,
+            <View style={[styles.row,
             form.rent_without_consent_location === "others" ? {} : { marginTop: 10 }
             ]}>
-                <View style={{ padding: 5 }}>
+                <View style={[styles.inputWrapper, { padding: 5, flex: 1 }]}>
                     <ThemedRadioBtn label={"Is the structure located in a danger zone area"}
                         required={true}
                         onChangeText={(value) => {
@@ -1023,7 +983,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                 </View>
 
                 {form.is_dangerzone === true && (
-                    <View style={{ flex: 1, padding: 5 }}>
+                    <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
                         <ThemedRadioBtn label={"If yes, which hazard/s is it susceptible to:"}
                             required={true}
                             onChangeText={(value) => {
@@ -1042,6 +1002,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                                 { label: 'Others', value: 'others' },
                             ]}
                             selected={form.hazard}
+                            styleWidth={{ width: '30%' }}
                         />
                         <ThemedError error={errors?.hazard || errors?.errors?.hazard?.[0]} />
                     </View>
@@ -1049,7 +1010,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
             </View>
 
             {
-                form.hazard === "others" && (
+                form.is_dangerzone === true && form.hazard === "others" && (
                     <View style={{ marginTop: 10 }}>
                         <ThemedInputField
                             required={true}
@@ -1067,10 +1028,10 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                 )
             }
 
-            <View style={[styles.row, styles.inputWrapper,
+            <View style={[styles.row,
             form.hazard === "others" ? {} : { marginTop: 10 }
             ]}>
-                <View style={{ flex: 1, padding: 5, }}>
+                <View style={[styles.inputWrapper, { flex: 1, padding: 5, }]}>
                     <ThemedRadioBtn label={"Will the structure be affected by a government project"}
                         required={true}
                         onChangeText={(value) => {
@@ -1101,7 +1062,6 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                                 }
                             }}
                             items={project_type}
-                            icon={() => <FontAwesome6 name="chevron-down" size={14} color="#2680eb" />}
                         />
                         <ThemedError error={errors?.project_type || errors?.errors?.project_type?.[0]} />
 
@@ -1158,8 +1118,8 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                 />
             </View>
 
-            <View style={[styles.row, styles.inputWrapper, { marginTop: 10 }]}>
-                <View style={{ flex: 1, padding: 5 }}>
+            <View style={[styles.row, { marginTop: 10 }]}>
+                <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
                     <ThemedRadioBtn label={"Are you a resident voter in Davao City "}
                         required={true}
                         onChangeText={(value) => {
@@ -1177,24 +1137,26 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                     <ThemedError error={errors?.is_davao_voter || errors?.errors?.is_davao_voter?.[0]} />
                 </View>
 
-                <View style={{ flex: 1, padding: 5 }}>
-                    {form.is_davao_voter === false && (
-                        <View>
-                            <ThemedInputField
-                                required={true}
-                                label="if No, where"
-                                value={form.not_davao_voter_place}
-                                onChangeText={(value) => {
-                                    setForm(prev => ({ ...prev, not_davao_voter_place: value }))
-                                    if (errors?.['not_davao_voter_place']) {
-                                        setErrors(prev => ({ ...prev, not_davao_voter_place: undefined }));
-                                    }
-                                }}
-                            />
-                            <ThemedError error={errors?.not_davao_voter_place || errors?.errors?.not_davao_voter_place?.[0]} />
-                        </View>
-                    )}
-                </View>
+                {form.is_davao_voter === false && (
+                    <View style={{ flex: 1, padding: 5 }}>
+                        {form.is_davao_voter === false && (
+                            <View>
+                                <ThemedInputField
+                                    required={true}
+                                    label="if No, where"
+                                    value={form.not_davao_voter_place}
+                                    onChangeText={(value) => {
+                                        setForm(prev => ({ ...prev, not_davao_voter_place: value }))
+                                        if (errors?.['not_davao_voter_place']) {
+                                            setErrors(prev => ({ ...prev, not_davao_voter_place: undefined }));
+                                        }
+                                    }}
+                                />
+                                <ThemedError error={errors?.not_davao_voter_place || errors?.errors?.not_davao_voter_place?.[0]} />
+                            </View>
+                        )}
+                    </View>
+                )}
             </View>
             <View>
                 <ThemedPlace uuid={uuid} fetchApplicant={fetchAllData} onSubmit={handleSubmit} />
@@ -1228,7 +1190,7 @@ const styles = StyleSheet.create({
     },
     inputWrapper: {
         borderWidth: 1,
-        borderColor: "#2680eb",
+        borderColor: "#D5DCE4",
         borderRadius: 8,
         backgroundColor: "#fff",
     },

@@ -1,18 +1,15 @@
 import { StyleSheet, Text, View, TextInput, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native'
-import { format } from "date-fns";
 import { useColorScheme } from "react-native";
 import { Colors } from "../../constants/Colors";
 import ThemedError from "../ThemedForm/ThemedError";
 import ThemedHouseholdForm from "../Validation/ThemedHouseholdForm";
 import ThemedInputField from "../ThemedForm/ThemedInputField"
 import ThemedSubmit from '../ThemedForm/ThemedSubmit'
-import ThemedButton from "../ThemedForm/ThemedButton";
 import ThemedDate from "../ThemedForm/ThemedDate";
 import ThemedRadioBtn from "../ThemedForm/ThemedRadioBtn";
 import { relationService } from "../../components/API/RelationshipService";
 import { applicantHouseholdMemberService } from "../../components/API/ApplicantHouseholdMemberService";
 import ThemedDropdown from "../ThemedForm/ThemedDropdown";
-import { FontAwesome6 } from "@expo/vector-icons";
 import { useState, useEffect } from 'react'
 
 const ThemedHousehold = ({ householdUuid, onSubmit }) => {
@@ -48,11 +45,8 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
     });
 
     const [relation, setRelation] = useState([]);
-    const [showBirthDatePicker, setBirthdatePicker] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState(null)
-
-    const showBirthDate = () => setBirthdatePicker(true);
 
     useEffect(() => {
         fetchRelation()
@@ -64,8 +58,6 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
             const response = await applicantHouseholdMemberService.getApplicantHouseholdByUuid(householdUuid)
             if (response.data) {
                 const data = response.data;
-                console.log(data)
-
                 setForm(prev => ({
                     ...prev,
                     lastname: data.lastname,
@@ -85,14 +77,14 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                     other_skills: data.other_skills,
                     occupation: data.occupation,
                     other_occupation: data.other_occupation,
-                    monthly_income: data.monthly_income,
+                    monthly_income: String(data.monthly_income),
                     sss: data.sss,
                     gsis: data.gsis,
                     philhealth: data.philhealth,
                     fourPs: data.fourPs,
                     others: data.others,
                     pension_source: data.pension_source,
-                    monthly_pension: data.monthly_pension,
+                    monthly_pension: String(data.monthly_pension),
                 }))
             }
         } catch (error) {
@@ -130,11 +122,6 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
 
     const handleDateChange = (selectDate: any) => {
         setForm(value => ({ ...value, birthdate: selectDate }));
-        close();
-    };
-
-    const close = () => {
-        setBirthdatePicker(false);
     };
 
     const handleSubmit = async () => {
@@ -145,7 +132,6 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                 setErrors
             }
         } catch (validationError) {
-            console.log(validationError, 'validationError')
             const formattedErrors: any = {};
             if (validationError.inner) {
                 validationError.inner.forEach((err: any) => {
@@ -167,7 +153,7 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
         { label: 'Maranao', value: 'Maranao' },
         { label: 'Obo Manuvu', value: 'Obo Manuvu' },
         { label: 'Bagobo-Tagabawa', value: 'Bagobo-Tagabawa' },
-        { label: 'Tasug', value: 'Tasug' },
+        { label: 'Tausug', value: 'Tausug' },
         { label: 'Sama', value: 'Sama' },
         { label: 'Iranun', value: 'Iranun' },
         { label: 'Kagan', value: 'Kagan' },
@@ -265,10 +251,10 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
     ]
 
     const pension_source = [
-        { label: 'SSS', value: 'sss' },
-        { label: 'GSIS', value: 'gsis' },
+        { label: 'SSS', value: 'SSS' },
+        { label: 'GSIS', value: 'GSIS' },
         { label: 'Social Pension', value: 'Social Pension' },
-        { label: 'Others', value: 'others' },
+        { label: 'Others', value: 'Others' },
     ]
 
     if (isLoading) {
@@ -341,7 +327,6 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             }
                         }}
                         items={relation}
-                        icon={() => <FontAwesome6 name="chevron-down" size={14} color="#2680eb" />}
                     />
                     <ThemedError error={errors?.relationship_id || errors?.errors?.relationship_id?.[0]} />
                 </View>
@@ -350,23 +335,11 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
 
             <View style={[styles.row]}>
                 <View style={{ flex: 1 }}>
-                    <ThemedButton label="Birthdate" onPress={showBirthDate}
-                        icon={() => <FontAwesome6 name="calendar" size={18} color="#2680eb" />}
-                    >
-                        <TextInput
-                            style={styles.inputWithIcon}
-                            value={form.birthdate ? format(form.birthdate, "MMMM dd, yyyy") : ""}
-                            editable={false}
-                            pointerEvents="none"
-                            placeholder="Select date"
-                            placeholderTextColor="#A0AEC0"
-                        />
-                    </ThemedButton>
                     <ThemedDate
-                        date={form.birthdate || new Date()}
-                        handleConfirm={handleDateChange}
-                        hidePicker={() => close()}
-                        isPickerVisible={showBirthDatePicker}
+                        label="Birthdate"
+                        value={form.birthdate}
+                        onChange={handleDateChange}
+                        placeholder="Select date"
                     />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -402,6 +375,8 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             { label: 'Female', value: 'female' },
                         ]}
                         selected={form.sex}
+                        styleWidth={{ width: '40%' }}
+
                     />
                     <ThemedError error={errors?.sex || errors?.errors?.sex?.[0]} />
                 </View>
@@ -422,6 +397,7 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             { label: 'Widow/er', value: 'widow' },
                         ]}
                         selected={form.civil_status}
+                        styleWidth={{ width: '50%' }}
                     />
                     <ThemedError error={errors?.civil_status || errors?.errors?.civil_status?.[0]} />
                 </View>
@@ -436,6 +412,7 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             { label: 'No', value: false },
                         ]}
                         selected={form.is_pwd}
+                        styleWidth={{ width: '40%' }}
                     />
                 </View>
             </View>
@@ -453,7 +430,6 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             }
                         }}
                         items={ethnicity}
-                        icon={() => <FontAwesome6 name="chevron-down" size={14} color="#2680eb" />}
                     />
                     <ThemedError error={errors?.ethnicity || errors?.errors?.ethnicity?.[0]} />
                 </View>
@@ -469,7 +445,6 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             }
                         }}
                         items={religion}
-                        icon={() => <FontAwesome6 name="chevron-down" size={14} color="#2680eb" />}
                     />
                     <ThemedError error={errors?.religion || errors?.errors?.religion?.[0]} />
                 </View>
@@ -505,7 +480,6 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             }
                         }}
                         items={educational_attainment}
-                        icon={() => <FontAwesome6 name="chevron-down" size={14} color="#2680eb" />}
                     />
                     <ThemedError error={errors?.educational_attainment || errors?.errors?.educational_attainment?.[0]} />
                 </View>
@@ -521,7 +495,6 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             }
                         }}
                         items={skills}
-                        icon={() => <FontAwesome6 name="chevron-down" size={14} color="#2680eb" />}
                     />
                     <ThemedError error={errors?.skills || errors?.errors?.skills?.[0]} />
                 </View>
@@ -558,7 +531,6 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             }
                         }}
                         items={occupation}
-                        icon={() => <FontAwesome6 name="chevron-down" size={14} color="#2680eb" />}
                     />
                     <ThemedError error={errors?.occupation || errors?.errors?.occupation?.[0]} />
                 </View>
@@ -568,7 +540,7 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                         required={true}
                         keyboardType="numeric"
                         label="Monthly Income"
-                        value={form.monthly_income}
+                        value={String(form.monthly_income ?? '')}
                         onChangeText={(value) => {
                             setForm(prev => ({ ...prev, monthly_income: value }))
                             if (errors?.['monthly_income']) {
@@ -610,6 +582,7 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             { label: 'No', value: false },
                         ]}
                         selected={form.sss}
+                        styleWidth={{ width: '30%' }}
                     />
                 </View>
                 <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
@@ -623,6 +596,7 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             { label: 'No', value: false },
                         ]}
                         selected={form.gsis}
+                        styleWidth={{ width: '30%' }}
                     />
                 </View>
             </View>
@@ -639,6 +613,7 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             { label: 'No', value: false },
                         ]}
                         selected={form.philhealth}
+                        styleWidth={{ width: '30%' }}
                     />
                 </View>
                 <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
@@ -652,6 +627,7 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             { label: 'No', value: false },
                         ]}
                         selected={form.fourPs}
+                        styleWidth={{ width: '30%' }}
                     />
                 </View>
             </View>
@@ -681,7 +657,6 @@ const ThemedHousehold = ({ householdUuid, onSubmit }) => {
                             setForm({ ...form, pension_source: value });
                         }}
                         items={pension_source}
-                        icon={() => <FontAwesome6 name="chevron-down" size={14} color="#2680eb" />}
                     />
                 </View>
 
@@ -713,7 +688,7 @@ export default ThemedHousehold
 const styles = StyleSheet.create({
     inputWrapper: {
         borderWidth: 1,
-        borderColor: "#2680eb",
+        borderColor: "#E2E8F0",
         borderRadius: 8,
         backgroundColor: "#fff",
     },

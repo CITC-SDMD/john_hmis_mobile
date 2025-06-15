@@ -27,7 +27,6 @@ const ThemedUploadButton = ({
             if (result.type === 'success') {
                 onFileSelect?.(result);
             } else {
-                console.log('User cancelled document picker');
             }
         } catch (error) {
             console.error('Upload error:', error);

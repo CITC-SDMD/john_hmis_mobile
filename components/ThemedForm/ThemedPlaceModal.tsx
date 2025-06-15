@@ -62,8 +62,6 @@ const YourComponent = () => {
                                     <Button
                                         title="Submit"
                                         onPress={() => {
-                                            console.log('Place:', inputOne);
-                                            console.log('Date:', inputTwo);
                                             setModalVisible(false);
                                         }}
                                     />

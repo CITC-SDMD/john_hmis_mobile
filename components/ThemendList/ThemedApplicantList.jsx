@@ -75,7 +75,6 @@ const ApplicantList = ({
         );
       }
     } catch (error) {
-      console.log("error submit", error);
       setErrors(error);
     } finally {
       setIsLoading(false);
@@ -97,7 +96,6 @@ const ApplicantList = ({
         );
       }
     } catch (error) {
-      console.log("error delete", error);
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +118,6 @@ const ApplicantList = ({
         );
       }
     } catch (error) {
-      console.log("error cancel", error);
     } finally {
       setIsLoading(false);
     }
@@ -310,7 +307,7 @@ const ApplicantList = ({
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalFlex}>
-              <ThemedLabel label="Add Schedule" required={true} />
+              <ThemedLabel label="Add schedule" required={true} />
               <TouchableOpacity onPress={resetModalStates}>
                 <FontAwesome6 size={20} name="xmark" color={"#2680eb"} />
               </TouchableOpacity>
@@ -421,15 +418,16 @@ const styles = {
     borderRadius: 5,
   },
   inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderColor: "#2680eb",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
-    borderRadius: 5,
-    marginTop: 10,
-    paddingHorizontal: 10,
-    height: 40,
-    marginBottom: 10,
+    borderColor: '#D5DCE4',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    minHeight: 50,
+    // marginBottom: 10,
   },
   inputIcon: {
     marginRight: 10,

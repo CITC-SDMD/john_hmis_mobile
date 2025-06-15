@@ -2,9 +2,10 @@ import { StyleSheet } from 'react-native'
 import ThemedView from "../../../../../components/ThemedForm/ThemedView";
 import ThemedHousehold from "../../../../../components/ThemedCensus/ThemedHousehold";
 import { applicantHouseholdMemberService } from "../../../../../components/API/ApplicantHouseholdMemberService";
-import { useLocalSearchParams, router, useRouter } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import { useState } from 'react'
+import { format } from 'date-fns';
 
 const householdCreate = () => {
     const { uuid } = useLocalSearchParams();
@@ -18,7 +19,7 @@ const householdCreate = () => {
                 middlename: form.middlename,
                 lastname: form.lastname,
                 relationship_id: form.relationship_id,
-                birthdate: form.birthdate,
+                birthdate: form.birthdate ? format(form.birthdate, "yyyy-MM-dd") : null,
                 age: form.age,
                 sex: form.sex,
                 civil_status: form.civil_status,

@@ -4,6 +4,7 @@ import { applicationService } from "../../../../../components/API/ApplicationSer
 import { StyleSheet } from "react-native";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import { useLocalSearchParams, router } from "expo-router";
+import { format } from "date-fns";
 import { useState } from 'react'
 
 const createForm = () => {
@@ -23,7 +24,15 @@ const createForm = () => {
             name: value.name,
             type: value.type,
           });
-        } else if (key !== 'structure') {
+        }
+        else if (
+          (key === 'spouse_birthdate' || key === 'married_date' || key === 'live_in_date') &&
+          value instanceof Date
+        ) {
+          const formattedDate = format(value, "yyyy-MM-dd");
+          formData.append(key, formattedDate);
+        }
+        else if (key !== 'structure') {
           formData.append(key, value ?? '');
         }
       });

@@ -35,7 +35,6 @@ const ThemedFormMenu = ({ label = "Actions", onRemarks = () => { }, theme }) => 
 
             if (result?.assets && result.assets.length > 0) {
                 const file = result.assets[0];
-                console.log(`${documentType} uploaded:`, file.uri);
             }
         } catch (err) {
             console.error("Upload error:", err);
@@ -43,7 +42,6 @@ const ThemedFormMenu = ({ label = "Actions", onRemarks = () => { }, theme }) => 
     };
 
     const submitRemarks = () => {
-        console.log("Remarks submitted:", fieldOne, fieldTwo);
         onRemarks({ fieldOne, fieldTwo });
         setModalVisible(false);
         setFieldOne("");
@@ -159,7 +157,6 @@ const ThemedFormMenu = ({ label = "Actions", onRemarks = () => { }, theme }) => 
                         <ThemedUploadButton
                             containerStyle={{ marginTop: 0 }}
                             label="Attested"
-                            onFileSelect={(file) => console.log(file)}
                         >
                             <MaterialIcons name="attach-file" size={20} color="white" />
                             <Text style={{ color: 'white', marginLeft: 8 }}>Upload Signature</Text>

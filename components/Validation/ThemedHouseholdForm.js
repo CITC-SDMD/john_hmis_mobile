@@ -14,11 +14,6 @@ const ThemedHouseholdForm = Yup.object().shape({
     skills: Yup.string().required("The skills field is required"),
     occupation: Yup.string().required("The occupation field is required"),
     monthly_income: Yup.string().required("The monthly income field is required"),
-
-    // monthly_income: Yup.number()
-    //     .nullable()
-    //     .typeError('Monthly income must be a number')
-    //     .required('The Monthly income field is required'),
     pension_source: Yup.string().nullable(),
 
     other_occupation: Yup.string()

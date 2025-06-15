@@ -29,8 +29,6 @@ const AssociationMembers = () => {
 
     const [expandedId, setExpandedId] = useState(null);
     const [members, setMembers] = useState([]);
-
-    console.log("AGENCY UUID:", uuid);
     useEffect(() => {
         fetchMembers();
     }, []);
@@ -260,14 +258,12 @@ export default AssociationMembers;
 
 //     const fetchData = async (page = 1) => {
 //         try {
-//             console.log("Fetching members for agency_uuid:", uuid);
 
 //             const params = {
 //                 agency_uuid: uuid,
 //             };
 
 //             const response = await agencyMemberService.getAgencyMembers(params);
-//             console.log("API response:", response);
 
 //             if (response?.data) {
 //                 setMembers(prev =>

@@ -50,8 +50,6 @@ export default function Login() {
         const token = response.data.token
         await AsyncStorage.setItem("_token", token);
         await saveTokenToDB(token);
-
-        // console.log('Token saved:', token);
         setUser(response.data.user);
         setErrors({});
 

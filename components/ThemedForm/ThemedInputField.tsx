@@ -24,10 +24,12 @@ const ThemedInputField = ({
 
   return (
     <View style={[styles.container, style]}>
-      {label && <Text style={styles.label}>
-        {label}
-        {required && <Text style={{ color: "red" }}> *</Text>}
-      </Text>}
+      {label && (
+        <View style={{ flexDirection: 'row' }}>
+          <Text style={styles.label}>{label}</Text>
+          {required && <Text style={{ color: 'red', marginLeft: 4 }}>*</Text>}
+        </View>
+      )}
 
       <View style={styles.inputWrapper}>
         <TextInput
@@ -60,23 +62,25 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#2D3748",
-    marginBottom: 4,
+    color: '#4A5568',
+    marginBottom: 8,
+    fontWeight: '600'
   },
   inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: "#2680eb",
+    borderColor: '#E2E8F0',
     borderRadius: 8,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
+    paddingHorizontal: 10,
+    minHeight: 50,
   },
   input: {
     flex: 1,
     padding: 10,
     fontSize: 14,
-    color: "#000",
+    color: "#2D3748",
   },
   iconWrapper: {
     paddingHorizontal: 10,

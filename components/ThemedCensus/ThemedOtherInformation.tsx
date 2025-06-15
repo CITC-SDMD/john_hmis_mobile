@@ -12,6 +12,7 @@ import ThemedButton from "../ThemedForm/ThemedButton";
 import ThemedRadioBtn from "../ThemedForm/ThemedRadioBtn";
 import * as DocumentPicker from 'expo-document-picker';
 import React, { useState, useEffect } from 'react'
+import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 
 const ThemedOtherInformation = ({ onSubmit, uuid }) => {
@@ -32,7 +33,7 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState(null)
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         try {
             setRefreshing(true);
             setErrors({})
@@ -48,7 +49,7 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
                 phone_number: '',
                 applicant_signature: null,
             }))
-            fetchApplicant();
+            await fetchApplicant();
         } catch (error) {
             setErrors(error)
         } finally {
@@ -57,9 +58,11 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
 
     }
 
-    useEffect(() => {
-        fetchApplicant()
-    }, [])
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchApplicant();
+        }, [uuid])
+    );
 
     const fetchApplicant = async () => {
         try {
@@ -96,7 +99,6 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
 
             if (res.assets && res.assets.length > 0) {
                 const file = res.assets[0];
-                console.log(file, 'files')
                 setForm(prev => ({
                     ...prev,
                     applicant_signature: {
@@ -123,7 +125,6 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
                 onSubmit(form);
             }
         } catch (validationError: any) {
-            console.log(validationError)
             const formattedErrors: any = {};
             if (validationError.inner) {
                 validationError.inner.forEach((err: any) => {
@@ -157,8 +158,7 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
     const renderItem = ({ item }) => (
         <View style={styles.itemContainer}>
             <View style={styles.itemTextContainer}>
-                <Text style={styles.placeText}>{item.firstname} {item.middlename}
-                    {item.lastname}
+                <Text style={styles.placeText}>{item.firstname} {item.middlename} {item.lastname}
                 </Text>
             </View>
             <TouchableOpacity
@@ -195,8 +195,8 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
 
             <Text style={{ marginTop: 20, fontWeight: "700", color: "#333", }} >III. OTHER INFORMATION</Text>
 
-            <View style={[styles.inputWrapper, styles.row, { padding: 5, marginTop: 20 }]}>
-                <View style={{ flex: 1 }}>
+            <View style={[styles.row, { marginTop: 20 }]}>
+                <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
                     <ThemedRadioBtn
                         label={"Does the family receive any remittances?"}
                         required={true}
@@ -216,7 +216,7 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
                 </View>
 
                 {form.is_remittance === true && (
-                    <View style={{ flex: 1 }}>
+                    <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
                         <ThemedRadioBtn
                             label={"If yes?"}
                             required={true}
@@ -231,6 +231,7 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
                                 { label: 'International', value: 'international' },
                             ]}
                             selected={form.remittance}
+                            styleWidth={{ width: '30%' }}
                         />
                         <ThemedError error={errors?.remittance || errors?.errors?.remittance?.[0]} />
                     </View>
@@ -367,14 +368,13 @@ const styles = StyleSheet.create({
     },
     inputWrapper: {
         borderWidth: 1,
-        borderColor: "#2680eb",
+        borderColor: "#D5DCE4",
         borderRadius: 8,
         backgroundColor: "#fff",
     },
     row: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 10,
+        columnGap: 8,
     },
 
     inputBox: {
@@ -384,12 +384,6 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     noticeBox: {
-        // backgroundColor: '#f0f4ff',
-        // borderColor: '#2680eb',
-        // borderWidth: 1,
-        // borderRadius: 8,
-        // padding: 10,
-
         alignItems: 'center',
         backgroundColor: '#fff',
         padding: 10,
@@ -432,7 +426,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#fff',
-        padding: 10,
+        padding: 15,
         marginVertical: 5,
         borderRadius: 8,
         borderWidth: 1,
