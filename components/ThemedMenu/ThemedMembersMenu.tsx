@@ -8,12 +8,10 @@ import {
     MenuOption,
 } from "react-native-popup-menu";
 
-const ThemedMembersMenu = ({
+const ThemeAssociationMenu = ({
     label = "Options",
     onForm = () => { },
-    onApplication = () => { },
     onSchedule = () => { },
-    onDelete = () => { },
     theme,
     data,
 }) => {
@@ -56,12 +54,12 @@ const ThemedMembersMenu = ({
             >
                 <MenuOption style={styles.contentflex} onSelect={onForm}>
                     <Ionicons name="document-text-outline" color={"#2680eb"} size={20} />
-                    <Text style={styles.optionText}>View Form</Text>
+                    <Text style={styles.optionText}>View form</Text>
                 </MenuOption>
-                {/* <MenuOption style={styles.contentflex} onSelect={onSchedule}>
+                <MenuOption style={styles.contentflex} onSelect={onSchedule}>
                     <Ionicons name="time-outline" color={"#2680eb"} size={20} />
                     <Text style={styles.optionText}>Set schedule</Text>
-                </MenuOption> */}
+                </MenuOption>
             </MenuOptions>
         </Menu>
     );
@@ -90,4 +88,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ThemedMembersMenu;
+export default ThemeAssociationMenu;

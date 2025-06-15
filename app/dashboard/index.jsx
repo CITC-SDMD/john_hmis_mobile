@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useColorScheme } from "react-native";
 import { Colors } from "../../constants/Colors";
-import { agencyService } from "../../components/API/AgencyService";
+import { agencyService } from "../../components/API/AgenciesService";
 import { applicantService } from "../../components/API/ApplicantService";
 import { beneficiaryService } from "../../components/API/BeneficiaryService";
 import ThemedAppointmentList from "../../components/ThemendList/ThemedAppointmentList";

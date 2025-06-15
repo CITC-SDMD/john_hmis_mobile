@@ -8,12 +8,11 @@ import {
     MenuOption,
 } from "react-native-popup-menu";
 
-const ThemedAssociationMenu = ({
+const ThemeAssociationMenu = ({
     label = "Options",
     onForm = () => { },
     onSchedule = () => { },
     theme,
-    data,
 }) => {
     return (
         <Menu>
@@ -54,22 +53,12 @@ const ThemedAssociationMenu = ({
             >
                 <MenuOption style={styles.contentflex} onSelect={onForm}>
                     <Ionicons name="document-text-outline" color={"#2680eb"} size={20} />
-                    <Text style={styles.optionText}>View Member</Text>
+                    <Text style={styles.optionText}>View form</Text>
                 </MenuOption>
                 <MenuOption style={styles.contentflex} onSelect={onSchedule}>
                     <Ionicons name="time-outline" color={"#2680eb"} size={20} />
                     <Text style={styles.optionText}>Set schedule</Text>
                 </MenuOption>
-                {/* {data.schedule && (
-                    <MenuOption style={styles.contentflex} onSelect={onApplication}>
-                        <Ionicons name="calendar-outline" color={"#2680eb"} size={20} />
-                        <Text style={styles.optionText}>Cancel application</Text>
-                    </MenuOption>
-                )}
-                <MenuOption style={styles.contentflex} onSelect={onDelete}>
-                    <Ionicons name="close-circle-outline" color={"#2680eb"} size={20} />
-                    <Text style={styles.optionText}>Delete applicant</Text>
-                </MenuOption> */}
             </MenuOptions>
         </Menu>
     );
@@ -98,4 +87,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ThemedAssociationMenu;
+export default ThemeAssociationMenu;
