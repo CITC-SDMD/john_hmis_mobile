@@ -1,6 +1,6 @@
-import BaseApiService from "./BaseAPIService";
+import BaseAPIService from '../../components/API/BaseAPIService';
 
-class AgencyMemberService extends BaseApiService {
+class AgencyMemberService extends BaseAPIService {
     async getAgencyMembers(params: object): Promise<any> {
         return await this.request(`/agency-members`, "GET", params);
     }

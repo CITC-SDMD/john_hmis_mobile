@@ -23,18 +23,6 @@ export default function IndividualLayout() {
           headerShown: false,
         }}
       />
-      {/* <Stack.Screen
-        name="application-form/[uuid]"
-        options={{
-          headerShown: true,
-          title: "Application Form",
-          headerTitleStyle: {
-            fontSize: 12,
-            fontWeight: "500",
-            color: "#2680eb",
-          },
-        }}
-      /> */}
     </Stack>
   );
 }

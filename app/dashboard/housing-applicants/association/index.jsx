@@ -5,14 +5,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   SafeAreaView,
-  RefreshControl,
+  useColorScheme
 } from "react-native";
-import { useColorScheme } from "react-native";
 import { Colors } from "../../../../constants/Colors";
 import { agencyService } from "../../../../components/API/AgenciesService";
 import AssociationList from "../../../../components/ThemendList/ThemedAssociationList";
 import ThemedView from "../../../../components/ThemedForm/ThemedView";
-import { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 const AssociationScreen = () => {
   const colorScheme = useColorScheme();
@@ -23,24 +22,69 @@ const AssociationScreen = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+
   useEffect(() => {
     fetchAssociation();
   }, [])
 
-
-  const fetchAssociation = async () => {
+  const fetchAssociation = async (page = 1, append = false) => {
     try {
-      const response = await agencyService.getAgencies()
+      if (page === 1) setIsLoading(true);
+      else setIsLoadingMore(true);
+
+      const response = await agencyService.getAgencies(page);
       if (response.data) {
-        setAssociation(response.data)
+        setAssociation((prev) => {
+          if (!append) return response.data;
+
+          const existingUuids = new Set(prev.map((item) => item.uuid));
+          const newItems = response.data.filter(
+            (item) => !existingUuids.has(item.uuid)
+          );
+
+          return [...prev, ...newItems];
+        });
+        setCurrentPage(page);
+        setLastPage(response.meta?.last_page ?? 1);
       }
     } catch (error) {
-      console.log(error)
+      setErrors(error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
     }
-  }
+  };
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      setErrors(null);
+      await fetchAssociation();
+    } catch (error) {
+      setErrors(error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
 
-  if (isLoading) {
+  const handleDataChanged = useCallback(() => {
+    fetchAssociation()
+  }, []);
+
+  const handleLoadMore = () => {
+    if (!isLoadingMore && currentPage < lastPage) {
+      fetchAssociation(currentPage + 1, true);
+    }
+  };
+
+  const Loading = isLoading && association.length === 0 && !errors;
+  const hasNoData = !isLoading && association.length === 0 && !errors;
+
+  if (Loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.primary} />
@@ -57,11 +101,53 @@ const AssociationScreen = () => {
         Association List
       </Text>
 
+      {/* Error Display */}
+      {errors && (
+        <View style={[styles.errorContainer, { backgroundColor: theme.errorBackground || '#ffebee' }]}>
+          <Text style={[styles.errorText, { color: theme.error || '#d32f2f' }]}>
+            {errors.message}
+          </Text>
+          {errors.retry && (
+            <TouchableOpacity
+              onPress={errors.retry}
+              style={[styles.retryButton, { borderColor: theme.error || '#d32f2f' }]}
+            >
+              <Text style={[styles.retryButtonText, { color: theme.error || '#d32f2f' }]}>
+                Retry
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {/* Empty State */}
+      {hasNoData && (
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: theme.textLight }]}>
+            No association found
+          </Text>
+          <TouchableOpacity
+            onPress={handleRefresh}
+            style={[styles.refreshButton, { borderColor: theme.blue }]}
+          >
+            <Text style={[styles.refreshButtonText, { color: theme.blue }]}>
+              Refresh
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <AssociationList
         data={association}
         theme={theme}
         expandedId={expandedId}
-        onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)} />
+        onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
+        setIsLoading={setIsLoading}
+        isLoading={isLoading}
+        onDataChanged={handleDataChanged}
+        handleRefresh={handleRefresh}
+        onEndReached={handleLoadMore}
+      />
     </ThemedView>
   )
 }
@@ -86,25 +172,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-  },
-  tabContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  tab: {
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 3,
-  },
-  tabText: {
-    fontSize: 13,
-    padding: 3,
-    fontWeight: "500",
-  },
-  activeTabText: {
-    fontWeight: "bold",
   },
   errorContainer: {
     padding: 15,

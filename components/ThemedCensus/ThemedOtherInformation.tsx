@@ -15,7 +15,7 @@ import React, { useState, useEffect } from 'react'
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 
-const ThemedOtherInformation = ({ onSubmit, uuid }) => {
+const ThemedOtherInformation = ({ onSubmit, uuid, type }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     const [form, setForm] = useState({
@@ -139,11 +139,11 @@ const ThemedOtherInformation = ({ onSubmit, uuid }) => {
     }
 
     const navigate = () => {
-        router.push(`/dashboard/housing-applicants/individual/houseHold-form/${uuid}`)
+        router.push(`/dashboard/housing-applicants/${type}/houseHold-form/${uuid}`)
     }
 
     const updateHousehold = (value) => {
-        router.push(`/dashboard/housing-applicants/individual/houseHold-form/update/${uuid}?household=${value}`)
+        router.push(`/dashboard/housing-applicants/${type}/houseHold-form/update/${uuid}?household=${value}`)
     }
 
     if (isLoading) {

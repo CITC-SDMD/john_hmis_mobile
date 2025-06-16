@@ -173,7 +173,7 @@ const IndividualScreen = () => {
     }
   }, [currentPage, activeTab, totalPages, isLoadingMore, isLoading]);
 
-  const handleDataChanged = useCallback((actionType, applicantId) => {
+  const handleDataChanged = useCallback((actionType) => {
     fetchData(activeTab, 1);
     if (actionType === 'scheduled') {
       fetchData('schedule', 1);
@@ -184,10 +184,10 @@ const IndividualScreen = () => {
     }
   }, [activeTab]);
 
-  const shouldShowInitialLoading = isLoading && applicants[activeTab].length === 0 && !errors;
+  const Loading = isLoading && applicants[activeTab].length === 0 && !errors;
   const hasNoData = !isLoading && applicants[activeTab].length === 0 && !errors;
 
-  if (shouldShowInitialLoading) {
+  if (Loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.primary} />

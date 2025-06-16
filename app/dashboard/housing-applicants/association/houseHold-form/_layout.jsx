@@ -1,7 +1,11 @@
+export const unstable_settings = {
+    tabBarStyle: { display: "none" },
+};
+
 import { Stack, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function AssociationLayout() {
+export default function HouseHoldLayout() {
     return (
         <Stack
             screenOptions={{
@@ -18,9 +22,15 @@ export default function AssociationLayout() {
             }}
         >
             <Stack.Screen
-                name="index"
+                name="[uuid]"
                 options={{
-                    headerShown: false,
+                    headerShown: true,
+                    title: "Back",
+                    headerTitleStyle: {
+                        fontSize: 15,
+                        fontWeight: "500",
+                        color: "#2680eb",
+                    },
                 }}
             />
         </Stack>

@@ -5,7 +5,6 @@ import { applicantService } from "../API/ApplicantService";
 import { applicantResidencesService } from "../API/applicantResidencesService";
 import { FontAwesome6 } from "@expo/vector-icons";
 import React, { useEffect, useState, useRef } from 'react'
-import { format } from "date-fns";
 import { useColorScheme } from "react-native";
 import { Colors } from "../../constants/Colors";
 import { useFocusEffect } from '@react-navigation/native';
@@ -219,10 +218,6 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
         await fetchBarangay();
         await fetchApplicant();
     };
-
-    // useEffect(() => {
-    //     fetchAllData();
-    // }, [])
 
     useFocusEffect(
         React.useCallback(() => {

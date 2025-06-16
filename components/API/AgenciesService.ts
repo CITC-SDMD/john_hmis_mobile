@@ -1,8 +1,8 @@
 import BaseAPIService from '../../components/API/BaseAPIService';
 
 class AgencyService extends BaseAPIService {
-    async getAgencies(): Promise<any> {
-        return await this.request(`/applicants/agency/lists`, "GET");
+    async getAgencies(params: object): Promise<any> {
+        return await this.request(`/applicants/agency/lists`, "GET", params);
     }
 
     async getAgenciesList(): Promise<any> {

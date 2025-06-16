@@ -501,7 +501,6 @@ const styles = {
     fontWeight: '600',
     color: '#222',
     fontSize: 15,
-    width: 170,
   },
   msgContainer: {
     flexDirection: 'row',

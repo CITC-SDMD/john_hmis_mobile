@@ -11,7 +11,6 @@ import { Colors } from "../../constants/Colors";
 import { agencyService } from "../../components/API/AgenciesService";
 import { applicantService } from "../../components/API/ApplicantService";
 import { beneficiaryService } from "../../components/API/BeneficiaryService";
-import ThemedAppointmentList from "../../components/ThemendList/ThemedAppointmentList";
 import ThemedView from "../../components/ThemedForm/ThemedView";
 import Icon from "react-native-vector-icons/FontAwesome5";
 
@@ -129,10 +128,6 @@ const index = () => {
           </View>
         ))}
       </View>
-      {/* <View style={{ marginTop: 20 }}>
-        <Text style={styles.detailText}>List of current schedule</Text>
-        <ThemedAppointmentList />
-      </View> */}
     </ThemedView>
   );
 };

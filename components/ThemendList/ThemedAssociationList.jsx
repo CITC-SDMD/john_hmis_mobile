@@ -15,9 +15,8 @@ import { useRouter } from "expo-router";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import { applicantSchedulesService } from "../../components/API/ApplicantSchedulesService";
-import { applicantService } from "../../components/API/ApplicantService";
 import ThemedDateTimePicker from "../../components/ThemedForm/ThemedDateTimePicker";
-import ThemeIndividualMenu from "../../components/ThemedMenu/ThemeIndividualMenu";
+import ThemeAssociationMenu from "../../components/ThemedMenu/ThemedAssociationMenu";
 import ThemedLabel from "../../components/ThemedForm/ThemedLabel";
 import ThemedError from "../../components/ThemedForm/ThemedError";
 import ThemedCard from "../../components/ThemedForm/ThemedCard";
@@ -28,11 +27,13 @@ const AssociationList = ({
     theme,
     expandedId,
     onEndReached,
-    isLoadingMore,
     onToggleExpand,
-    onDataChanged,
     isLoading,
     setIsLoading,
+    isRefreshing,
+    handleRefresh,
+    isLoadingMore,
+    onDataChanged
 }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
@@ -50,36 +51,66 @@ const AssociationList = ({
     };
 
     const handleSubmit = async () => {
-        // setIsLoading(true);
-        // setErrors({});
-        // try {
-        //     const params = {
-        //         schedule: schedule ? format(schedule, "yyyy-MM-dd HH:mm:ss") : null,
-        //     };
-        //     const response = await applicantSchedulesService.saveApplicantSchedules(
-        //         selectedItem.uuid,
-        //         params
-        //     );
-        //     if (response.data) {
-        //         resetModalStates();
-        //         onToggleExpand(null);
+        setIsLoading(true);
+        setErrors({});
+        try {
+            const params = {
+                schedule: schedule ? format(schedule, "yyyy-MM-dd HH:mm:ss") : null,
+            };
+            const response = await applicantSchedulesService.saveApplicantSchedules(
+                selectedItem.uuid,
+                params
+            );
+            if (response.data) {
+                resetModalStates();
+                onToggleExpand(null);
 
-        //         if (typeof onDataChanged === "function") {
-        //             onDataChanged('scheduled', selectedItem.uuid);
-        //         }
+                if (typeof onDataChanged === "function") {
+                    onDataChanged('scheduled', selectedItem.uuid);
+                }
 
-        //         successAlert(
-        //             "Create Successful",
-        //             "You have been successfully created a schedule",
-        //             ALERT_TYPE.SUCCESS
-        //         );
-        //     }
-        // } catch (error) {
-        //     setErrors(error);
-        // } finally {
-        //     setIsLoading(false);
-        // }
+                successAlert(
+                    "Create Successful",
+                    "You have been successfully created a schedule",
+                    ALERT_TYPE.SUCCESS
+                );
+            }
+        } catch (error) {
+            setErrors(error);
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    const handleCancelApplicaition = async (item) => {
+        try {
+            setIsLoading(true);
+            const response = await applicantSchedulesService.cancelApplicantSchedules(
+                item.uuid
+            );
+            if (response.data) {
+                if (typeof onDataChanged === "function") {
+                    onDataChanged('cancelled', item.uuid);
+                }
+                successAlert(
+                    "Cancel Successful",
+                    "You have been successfully cancel a application",
+                    ALERT_TYPE.WARNING
+                );
+            }
+        } catch (error) {
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    function successAlert(title, message, type) {
+        Toast.show({
+            title: title,
+            textBody: message,
+            type: type,
+        });
+    }
 
     const resetModalStates = () => {
         setIsModalVisible(false);
@@ -134,23 +165,48 @@ const AssociationList = ({
                                             </View>
                                         )}
                                     </View>
+
+                                    <View>
+                                        {item?.application?.is_approved === true ? (
+                                            <View />
+                                        ) : (
+                                            <View style={{ flexDirection: "row" }}>
+                                                <Text style={styles.labelText}>Reason:</Text>
+
+                                                {item.is_cancelled === true ? (
+                                                    <View style={styles.iconFlex}>
+                                                        <View style={styles.iconCancel} />
+                                                        <Text style={styles.detailText}>
+                                                            Cancel Application
+                                                        </Text>
+                                                    </View>
+                                                ) : (
+                                                    <View style={styles.iconFlex}>
+                                                        <View style={styles.iconPending} />
+                                                        <Text style={styles.pendingText}>Pending</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        )}
+                                    </View>
                                 </View>
                                 <View>
                                     {item?.application?.is_approved === true ? (
                                         <View />
                                     ) : (
-                                        <ThemeIndividualMenu
+                                        <ThemeAssociationMenu
                                             theme={theme}
                                             data={item}
-                                            // onForm={() =>
-                                            //     router.push(
-                                            //         // `/dashboard/housing-applicants/individual/basicInformation-form/${item?.uuid}`
-                                            //     )
-                                            // }
+                                            onForm={() =>
+                                                router.push(
+                                                    `/dashboard/housing-applicants/association/association-members/${item?.agency.uuid}`
+                                                )
+                                            }
                                             onSchedule={() => {
                                                 setSelectedItem(item);
                                                 setIsModalVisible(true);
                                             }}
+                                            onCancelApplication={() => handleCancelApplicaition(item)}
                                         />
                                     )}
                                 </View>
@@ -162,6 +218,17 @@ const AssociationList = ({
         );
     };
 
+    if (isLoading) {
+        return (
+            <SafeAreaView
+                style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+            >
+                <ActivityIndicator size="large" color={theme.primary} />
+                <Text style={{ color: theme.textLight }}>Loading...</Text>
+            </SafeAreaView>
+        );
+    }
+
     return (
         <SafeAreaView>
             <FlatList
@@ -171,15 +238,6 @@ const AssociationList = ({
                 contentContainerStyle={{ paddingBottom: 100 }}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.1}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={isLoading}
-                        onRefresh={() => onDataChanged && onDataChanged('refresh')}
-                    />
-                }
-                ListEmptyComponent={
-                    <Text style={styles.emptyText}>No Associations found</Text>
-                }
                 ListFooterComponent={
                     isLoadingMore ? (
                         <View style={styles.footer}>
@@ -189,6 +247,12 @@ const AssociationList = ({
                             </Text>
                         </View>
                     ) : null
+                }
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshing}
+                        onRefresh={() => handleRefresh && onDataChanged('refresh')}
+                    />
                 }
             />
             <Modal
@@ -393,11 +457,10 @@ const styles = {
         width: 280,
     },
     nameTxt: {
-        marginLeft: 15,
+        marginLeft: 10,
         fontWeight: '600',
         color: '#222',
         fontSize: 15,
-        width: 170,
     },
     msgContainer: {
         flexDirection: 'row',

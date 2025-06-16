@@ -12,6 +12,8 @@ const ThemeAssociationMenu = ({
     label = "Options",
     onForm = () => { },
     onSchedule = () => { },
+    onCancelApplication = () => { },
+    data,
     theme,
 }) => {
     return (
@@ -53,12 +55,18 @@ const ThemeAssociationMenu = ({
             >
                 <MenuOption style={styles.contentflex} onSelect={onForm}>
                     <Ionicons name="document-text-outline" color={"#2680eb"} size={20} />
-                    <Text style={styles.optionText}>View form</Text>
+                    <Text style={styles.optionText}>View member</Text>
                 </MenuOption>
                 <MenuOption style={styles.contentflex} onSelect={onSchedule}>
                     <Ionicons name="time-outline" color={"#2680eb"} size={20} />
                     <Text style={styles.optionText}>Set schedule</Text>
                 </MenuOption>
+                {data.schedule && (
+                    <MenuOption style={styles.contentflex} onSelect={onCancelApplication}>
+                        <Ionicons name="calendar-outline" color={"#2680eb"} size={20} />
+                        <Text style={styles.optionText}>Cancel application</Text>
+                    </MenuOption>
+                )}
             </MenuOptions>
         </Menu>
     );

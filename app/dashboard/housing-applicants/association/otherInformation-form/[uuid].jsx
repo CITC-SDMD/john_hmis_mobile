@@ -50,7 +50,7 @@ const otherInformation = () => {
 
     return (
         <ThemedView style={[styles.container, { paddingHorizontal: 10 }]} safe={true}>
-            <ThemedOtherInformation onSubmit={handleSubmit} uuid={uuid} type={"individual"} />
+            <ThemedOtherInformation onSubmit={handleSubmit} uuid={uuid} type={"association"} />
         </ThemedView>
     )
 }
