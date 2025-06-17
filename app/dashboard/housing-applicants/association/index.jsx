@@ -38,6 +38,7 @@ const AssociationScreen = () => {
 
       const response = await agencyService.getAgencies(page);
       if (response.data) {
+        console.log(response.data)
         setAssociation((prev) => {
           if (!append) return response.data;
 

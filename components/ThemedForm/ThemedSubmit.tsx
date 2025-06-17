@@ -19,17 +19,27 @@ export default ThemedSubmit;
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#2680eb",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 4,
+    // backgroundColor: "#2680eb",
+    // paddingVertical: 10,
+    // paddingHorizontal: 20,
+    // borderRadius: 4,
+    // alignItems: "center",
+    // justifyContent: "center",
+    // alignSelf: "center",
+
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
+    // borderWidth: 1,
+    // borderColor: '#2680eb',
+    borderRadius: 8,
+    backgroundColor: '#2680eb',
+    paddingHorizontal: 10,
+    minHeight: 50,
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "bold",
-    fontSize: 14,
+    fontWeight: "700",
+    fontSize: 16,
   },
 });

@@ -24,10 +24,6 @@ const AssociationMemberScreen = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const [lastPage, setLastPage] = useState(1);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-
     const [errors, setErrors] = useState(null);
 
     useEffect(() => {
@@ -36,30 +32,16 @@ const AssociationMemberScreen = () => {
 
     const fetchMember = async (page = 1, append = false) => {
         try {
-            if (page === 1) setIsLoading(true);
-            else setIsLoadingMore(true);
 
             const params = {
                 agency_uuid: uuid
             }
             const response = await agencyMemberService.getAgencyMembers(params)
             if (response.data) {
-                setMembers((prev) => {
-                    if (!append) return response.data;
-
-                    const existingUuids = new Set(prev.map((item) => item.uuid));
-                    const newItems = response.data.filter(
-                        (item) => !existingUuids.has(item.uuid)
-                    );
-
-                    return [...prev, ...newItems];
-                });
-                setCurrentPage(page);
-                setLastPage(response.meta?.last_page ?? 1);
+                setMembers(response.data)
             }
         } catch (error) {
             setErrors(error);
-            setIsLoadingMore(false);
         }
     }
 
@@ -74,12 +56,6 @@ const AssociationMemberScreen = () => {
             setIsRefreshing(false);
         }
     }, []);
-
-    const handleLoadMore = () => {
-        if (!isLoadingMore && currentPage < lastPage) {
-            fetchAssociation(currentPage + 1, true);
-        }
-    };
 
     const Loading = isLoading && members.length === 0 && !errors;
     const hasNoData = !isLoading && members.length === 0 && !errors;
@@ -146,7 +122,6 @@ const AssociationMemberScreen = () => {
                 isLoading={isLoading}
                 isRefreshing={isRefreshing}
                 handleRefresh={handleRefresh}
-                onEndReached={handleLoadMore}
             />
         </ThemedView>
     )

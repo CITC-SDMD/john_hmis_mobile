@@ -16,7 +16,7 @@ import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ThemedView from "../../components/ThemedForm/ThemedView";
 import ThemedInputField from "../../components/ThemedForm/ThemedInputField";
-import ThemedCustomButton from "../../components/ThemedForm/ThemedSubmit";
+import ThemedSubmit from "../../components/ThemedForm/ThemedSubmit";
 import ThemedError from "../../components/ThemedForm/ThemedError";
 import logo from "../../assets/davao_logo.png";
 import dcho from "../../assets/dcho.png";
@@ -91,6 +91,7 @@ export default function Login() {
 
         <View style={styles.inputContainer}>
           <ThemedInputField
+            required={true}
             style={{ width: windowWidth - 40 }}
             value={form.email}
             onChangeText={(text) => setForm({ ...form, email: text })}
@@ -101,6 +102,7 @@ export default function Login() {
 
         <View style={styles.inputContainer}>
           <ThemedInputField
+            required={true}
             style={{ width: windowWidth - 40 }}
             value={form.password}
             onChangeText={(text) => setForm({ ...form, password: text })}
@@ -111,7 +113,7 @@ export default function Login() {
         </View>
 
         <View>
-          <ThemedCustomButton
+          <ThemedSubmit
             style={{ width: windowWidth - 40 }}
             title="Sign in"
             onPress={submitLogin}

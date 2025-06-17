@@ -53,10 +53,12 @@ const ThemeAssociationMenu = ({
                     },
                 }}
             >
-                <MenuOption style={styles.contentflex} onSelect={onForm}>
-                    <Ionicons name="document-text-outline" color={"#2680eb"} size={20} />
-                    <Text style={styles.optionText}>View member</Text>
-                </MenuOption>
+                {data.agency?.name && (
+                    <MenuOption style={styles.contentflex} onSelect={onForm}>
+                        <Ionicons name="document-text-outline" color={"#2680eb"} size={20} />
+                        <Text style={styles.optionText}>View member</Text>
+                    </MenuOption>
+                )}
                 <MenuOption style={styles.contentflex} onSelect={onSchedule}>
                     <Ionicons name="time-outline" color={"#2680eb"} size={20} />
                     <Text style={styles.optionText}>Set schedule</Text>

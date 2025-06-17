@@ -10,7 +10,7 @@ import { useUserStore } from "../../store/userStore";
 import { authService } from "../../components/API/AuthService";
 import { useColorScheme, View, StyleSheet } from "react-native";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
-import ThemedCustomButton from "../../components/ThemedForm/ThemedSubmit";
+import ThemedSubmit from "../../components/ThemedForm/ThemedSubmit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthDatabase } from "../../components/hooks/useAuthDatabase";
 import { useState } from "react";
@@ -60,7 +60,7 @@ const CustomDrawerContent = (props) => {
       </DrawerContentScrollView>
 
       <View style={styles.logoutContainer}>
-        <ThemedCustomButton
+        <ThemedSubmit
           style={{ width: "100%" }}
           title="Logout"
           onPress={handleLogout}
