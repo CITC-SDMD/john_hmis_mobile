@@ -640,7 +640,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
             {form.civil_status === 'live_in' && (
                 <View style={{ flex: 1, marginTop: 10 }}>
                     <ThemedDate
-                        label="Date of living in"
+                        label="Date of common in law"
                         required={true}
                         value={form.live_in_date}
                         onChange={handleLiveInDateChange}
