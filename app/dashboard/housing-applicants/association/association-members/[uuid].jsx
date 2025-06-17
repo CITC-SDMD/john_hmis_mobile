@@ -71,11 +71,30 @@ const AssociationMemberScreen = () => {
         );
     }
 
+    const capitalizeFirstLetter = (string) => {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    const getName = () => {
+        return members.filter(item => item.agency).map(item => `${capitalizeFirstLetter(item.firstname)} ${item.middlename} ${item.lastname}`)
+            .join(', ');
+    };
+
     return (
         <ThemedView style={styles.container}>
-            <Text style={[styles.title, { color: theme.textLight }]}>
-                Member List
-            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={[styles.title, { color: theme.textLight }]}>
+                    Member List
+                </Text>
+                <View>
+                    <Text style={[styles.agencyTitle, { color: theme.blue, textAlign: 'right' }]}>
+                        {capitalizeFirstLetter(members.filter(items => items.agency).map(item => item.agency.name).join(', '))}
+                    </Text>
+                    <Text style={[{ color: theme.blue, fontWeight: "600", textAlign: 'right' }]}>
+                        {getName()}
+                    </Text>
+                </View>
+            </View>
 
             {/* Error Display */}
             {errors && (
@@ -117,7 +136,7 @@ const AssociationMemberScreen = () => {
                 data={members}
                 theme={theme}
                 expandedId={expandedId}
-                onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
+                onToggleExpand={(uuid) => setExpandedId(expandedId === uuid ? null : uuid)}
                 setIsLoading={setIsLoading}
                 isLoading={isLoading}
                 isRefreshing={isRefreshing}
@@ -138,6 +157,12 @@ const styles = StyleSheet.create({
         fontSize: 17,
         fontWeight: "bold",
         marginVertical: 10,
+    },
+    agencyTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginVertical: 10,
+        color: "#2680eb",
     },
     loadingContainer: {
         flex: 1,

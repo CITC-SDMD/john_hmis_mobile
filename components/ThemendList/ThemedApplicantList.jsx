@@ -166,8 +166,32 @@ const ApplicantList = ({
               <View>
                 <View style={styles.nameContainer}>
                   <Text style={styles.nameTxt} numberOfLines={1} ellipsizeMode="tail">
-                    {item.firstname} {item.middlename} {item.lastname}
+                    {item.firstname.charAt(0).toUpperCase() + item.firstname.slice(1)} {item.middlename} {item.lastname}
                   </Text>
+                  <View style={{ flexDirection: "row", marginLeft: 5 }}>
+                    {item?.application?.is_approved === true ? (
+                      <View style={[styles.iconFlex, { backgroundColor: '#d1fae5', borderRadius: 8, }]}>
+                        <View style={[{ marginHorizontal: 7, marginVertical: 3 }, styles.iconFlex]}>
+                          <View style={styles.iconGreen} />
+                          <Text style={[styles.detailStatus]}>Approved</Text>
+                        </View>
+                      </View>
+                    ) : item?.application?.is_approved === false ? (
+                      <View style={[styles.iconFlex, { backgroundColor: '#fee2e2', borderRadius: 8, }]}>
+                        <View style={[{ marginHorizontal: 7, marginVertical: 3 }, styles.iconFlex]}>
+                          <View style={styles.iconCancel} />
+                          <Text style={[styles.detailStatus]}>Disapproved</Text>
+                        </View>
+                      </View>
+                    ) : (
+                      <View style={[styles.iconFlex, { backgroundColor: '#fef9c3', borderRadius: 8, }]}>
+                        <View style={[{ marginHorizontal: 7, marginVertical: 3 }, styles.iconFlex]}>
+                          <View style={styles.iconPending} />
+                          <Text style={[styles.detailStatus]}>Pending</Text>
+                        </View>
+                      </View>
+                    )}
+                  </View>
                 </View>
                 <View style={styles.msgContainer}>
                   <Text style={styles.msgTxt}>{item.phone_number}</Text>
@@ -196,25 +220,6 @@ const ApplicantList = ({
                     )}
                   </View>
 
-                  <View style={{ flexDirection: "row" }}>
-                    <Text style={styles.labelText}>Status:</Text>
-                    {item?.application?.is_approved === true ? (
-                      <View style={styles.iconFlex}>
-                        <View style={styles.iconGreen} />
-                        <Text style={styles.detailText}>Approved</Text>
-                      </View>
-                    ) : item?.application?.is_approved === false ? (
-                      <View style={styles.iconFlex}>
-                        <View style={styles.iconCancel} />
-                        <Text style={styles.detailText}>Disapproved</Text>
-                      </View>
-                    ) : (
-                      <View style={styles.iconFlex}>
-                        <View style={styles.iconPending} />
-                        <Text style={styles.pendingText}>Pending</Text>
-                      </View>
-                    )}
-                  </View>
 
                   <View>
                     {item?.application?.is_approved === true ? (
@@ -457,7 +462,6 @@ const styles = {
     borderRadius: 5,
     backgroundColor: "#ef4444",
     marginRight: 6,
-
   },
   iconPending: {
     width: 10,
@@ -531,7 +535,11 @@ const styles = {
     color: 'grey',
     fontWeight: '500',
   },
-
+  detailStatus: {
+    fontSize: 10,
+    color: '#333',
+    fontWeight: '600',
+  }
 };
 
 export default ApplicantList;

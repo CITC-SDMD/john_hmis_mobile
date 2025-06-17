@@ -52,7 +52,7 @@ const ThemeMembersMenu = ({
             >
                 <MenuOption style={styles.contentflex} onSelect={onForm}>
                     <Ionicons name="document-text-outline" color={"#2680eb"} size={20} />
-                    <Text style={styles.optionText}>View member</Text>
+                    <Text style={styles.optionText}>View form</Text>
                 </MenuOption>
             </MenuOptions>
         </Menu>

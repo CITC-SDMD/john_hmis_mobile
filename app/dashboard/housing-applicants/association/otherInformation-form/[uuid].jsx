@@ -33,7 +33,7 @@ const otherInformation = () => {
                     "You have been successfully created application",
                     ALERT_TYPE.SUCCESS
                 );
-                router.push(`/dashboard/housing-applicants/individual`)
+                router.push(`/dashboard/housing-applicants/association/`)
             }
         } catch (error) {
             setErrors(error)

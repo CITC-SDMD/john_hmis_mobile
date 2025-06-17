@@ -610,7 +610,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                             { label: 'Single', value: 'single' },
                             { label: 'Married', value: 'married' },
                             { label: 'Separated', value: 'separated' },
-                            { label: 'Live-in', value: 'live_in' },
+                            { label: 'Common in law', value: 'live_in' },
                             { label: 'Widowed', value: 'widowed' },
                         ]}
                         selected={form.civil_status}
@@ -640,7 +640,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
             {form.civil_status === 'live_in' && (
                 <View style={{ flex: 1, marginTop: 10 }}>
                     <ThemedDate
-                        label="Date of Living in"
+                        label="Date of living in"
                         required={true}
                         value={form.live_in_date}
                         onChange={handleLiveInDateChange}
@@ -652,7 +652,11 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
 
             {(form.civil_status === 'married' || form.civil_status === 'live_in') && (
                 <View style={[form.civil_status === 'married' || form.civil_status === 'live_in' ? {} : { marginTop: 10 }]}>
-                    <Text style={{ color: "grey" }}>Name of Spouse:</Text>
+                    {form.civil_status === 'married' ? (
+                        <Text style={{ color: "grey" }}>Name of Spouse :</Text>
+                    ) : form.civil_status === 'live_in' ? (
+                        <Text style={{ color: "grey" }}>Name of Common in law :</Text>
+                    ) : null}
                     <View style={[styles.row, { marginTop: 10 }]}>
                         <View style={{ flex: 1 }}>
                             <ThemedInputField
@@ -672,7 +676,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                         <View style={{ flex: 1 }}>
                             <ThemedInputField
                                 required={true}
-                                label="Middle name"
+                                label="M.I"
                                 style={styles.flexInput}
                                 value={form.spouse_middlename}
                                 onChangeText={(value) => {

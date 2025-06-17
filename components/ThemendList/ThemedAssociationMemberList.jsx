@@ -26,10 +26,10 @@ const AssociationMemberList = ({
     const router = useRouter();
 
     const renderItem = ({ item }) => {
-        const isExpanded = expandedId === item.id;
+        const isExpanded = expandedId === item.uuid;
         return (
             <>
-                <TouchableOpacity onPress={() => onToggleExpand(item.id)}>
+                <TouchableOpacity onPress={() => onToggleExpand(item.uuid)}>
                     <ThemedCard style={[styles.card, { backgroundColor: "#FBFDFF" }]}>
                         <View style={styles.row}>
                             <View style={styles.pic}>
@@ -41,8 +41,32 @@ const AssociationMemberList = ({
                             <View>
                                 <View style={styles.nameContainer}>
                                     <Text style={styles.nameTxt} numberOfLines={1} ellipsizeMode="tail">
-                                        {item.firstname} {item.middlename} {item.lastname}
+                                        {item.firstname.charAt(0).toUpperCase() + item.firstname.slice(1)} {item.middlename} {item.lastname}
                                     </Text>
+                                    <View style={{ flexDirection: "row" }}>
+                                        {item?.application?.is_approved === true ? (
+                                            <View style={[styles.iconFlex, { backgroundColor: '#d1fae5', borderRadius: 8, }]}>
+                                                <View style={[{ marginHorizontal: 7, marginVertical: 3 }, styles.iconFlex]}>
+                                                    <View style={styles.iconGreen} />
+                                                    <Text style={[styles.detailStatus]}>Approved</Text>
+                                                </View>
+                                            </View>
+                                        ) : item?.application?.is_approved === false ? (
+                                            <View style={[styles.iconFlex, { backgroundColor: '#fee2e2', borderRadius: 8, }]}>
+                                                <View style={[{ marginHorizontal: 7, marginVertical: 3 }, styles.iconFlex]}>
+                                                    <View style={styles.iconCancel} />
+                                                    <Text style={[styles.detailStatus]}>Disapproved</Text>
+                                                </View>
+                                            </View>
+                                        ) : (
+                                            <View style={[styles.iconFlex, { backgroundColor: '#fef9c3', borderRadius: 8, }]}>
+                                                <View style={[{ marginHorizontal: 7, marginVertical: 3 }, styles.iconFlex]}>
+                                                    <View style={styles.iconPending} />
+                                                    <Text style={[styles.detailStatus]}>Pending</Text>
+                                                </View>
+                                            </View>
+                                        )}
+                                    </View>
                                 </View>
                                 <View style={styles.msgContainer}>
                                     <Text style={styles.msgTxt}>{item.phone_number}</Text>
@@ -155,11 +179,6 @@ const styles = {
         borderTopWidth: 1,
         borderTopColor: "#ccc",
     },
-    detailText: {
-        fontSize: 13,
-        color: '#333',
-        fontWeight: '500',
-    },
     footer: {
         paddingVertical: 20,
         alignItems: "center",
@@ -167,33 +186,6 @@ const styles = {
     },
     footerText: {
         marginLeft: 10,
-    },
-    iconBlue: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: "#0066CC",
-        marginRight: 6,
-    },
-    iconCancel: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: "#ef4444",
-        marginRight: 6,
-
-    },
-    iconPending: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: '#FFA500',
-        marginRight: 6,
-    },
-    iconFlex: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginLeft: 4,
     },
     row: {
         flexDirection: 'row',
@@ -237,6 +229,12 @@ const styles = {
         fontSize: 12,
         marginLeft: 15,
     },
+    Status: {
+        fontWeight: '500',
+        color: '#0CB6F3',
+        fontSize: 12,
+        marginLeft: 15,
+    },
     flexContent: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -247,14 +245,45 @@ const styles = {
         color: '#333',
         marginRight: 8,
     },
-    iconFlex: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
     pendingText: {
         fontSize: 13,
         color: 'grey',
         fontWeight: '500',
     },
-
+    iconFlex: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginLeft: 4,
+    },
+    iconPending: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#FFA500',
+        marginRight: 6,
+    },
+    iconGreen: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: "#22c55e",
+        marginRight: 6,
+    },
+    iconCancel: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: "#ef4444",
+        marginRight: 6,
+    },
+    detailText: {
+        fontSize: 13,
+        color: '#333',
+        fontWeight: '500',
+    },
+    detailStatus: {
+        fontSize: 10,
+        color: '#333',
+        fontWeight: '600',
+    }
 };

@@ -136,7 +136,7 @@ const AssociationList = ({
                             <View>
                                 <View style={styles.nameContainer}>
                                     <Text style={styles.nameTxt} numberOfLines={1} ellipsizeMode="tail">
-                                        {item.name} {item.middlename} {item.lastname}
+                                        {item.firstname.charAt(0).toUpperCase() + item.firstname.slice(1)} {item.middlename} {item.lastname}
                                     </Text>
                                 </View>
                                 <View style={styles.msgContainer}>
@@ -457,7 +457,7 @@ const styles = {
         width: 280,
     },
     nameTxt: {
-        marginLeft: 10,
+        marginLeft: 14,
         fontWeight: '600',
         color: '#222',
         fontSize: 15,
