@@ -28,11 +28,10 @@ const AssociationMemberScreen = () => {
 
     useEffect(() => {
         fetchMember()
-    }, [fetchMember])
+    }, [])
 
-    const fetchMember = async (page = 1, append = false) => {
+    const fetchMember = async () => {
         try {
-
             const params = {
                 agency_uuid: uuid
             }
@@ -71,13 +70,17 @@ const AssociationMemberScreen = () => {
         );
     }
 
-    const capitalizeFirstLetter = (string) => {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-    }
+    const capitalizeFirstLetter = (str) => {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    };
 
-    const getName = () => {
-        return members.filter(item => item.agency).map(item => `${capitalizeFirstLetter(item.firstname)} ${item.middlename} ${item.lastname}`)
-            .join(', ');
+    const getAgencyName = () => {
+        const firstAgencyMember = members.find(item => item.agency && item.agency.name);
+        if (firstAgencyMember) {
+            return firstAgencyMember.agency.name;
+        }
+        return '';
     };
 
     return (
@@ -88,10 +91,7 @@ const AssociationMemberScreen = () => {
                 </Text>
                 <View>
                     <Text style={[styles.agencyTitle, { color: theme.blue, textAlign: 'right' }]}>
-                        {capitalizeFirstLetter(members.filter(items => items.agency).map(item => item.agency.name).join(', '))}
-                    </Text>
-                    <Text style={[{ color: theme.blue, fontWeight: "600", textAlign: 'right' }]}>
-                        {getName()}
+                        {capitalizeFirstLetter(getAgencyName())}
                     </Text>
                 </View>
             </View>
@@ -161,8 +161,8 @@ const styles = StyleSheet.create({
     agencyTitle: {
         fontSize: 18,
         fontWeight: "bold",
-        marginVertical: 10,
         color: "#2680eb",
+        marginTop: 10,
     },
     loadingContainer: {
         flex: 1,

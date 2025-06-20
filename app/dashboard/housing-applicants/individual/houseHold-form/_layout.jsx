@@ -4,6 +4,7 @@ export const unstable_settings = {
 
 import { Stack, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import React from 'react';
 
 export default function IndividualLayout() {
     return (

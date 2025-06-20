@@ -21,7 +21,7 @@ import ThemedError from "../../components/ThemedForm/ThemedError";
 import logo from "../../assets/davao_logo.png";
 import dcho from "../../assets/dcho.png";
 import React, { useState } from "react";
-import { useAuthDatabase } from "../../components/hooks/useAuthDatabase";
+import { useAuthDatabase } from "../../components/Hooks/useAuthDatabase";
 
 
 export default function Login() {

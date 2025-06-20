@@ -9,12 +9,15 @@ import {
 } from "react-native";
 import { format } from "date-fns";
 import { useRouter } from "expo-router";
+import { applicationService } from "../../components/API/ApplicationService";
 import ThemedMembersMenu from "../../components/ThemedMenu/ThemedMembersMenu";
 import ThemedCard from "../../components/ThemedForm/ThemedCard";
+import * as FileSystem from 'expo-file-system';
 
 const AssociationMemberList = ({
     data,
     theme,
+    onFormPdf,
     expandedId,
     onEndReached,
     onToggleExpand,
@@ -24,6 +27,45 @@ const AssociationMemberList = ({
     isRefreshing,
 }) => {
     const router = useRouter();
+
+    // const formPdf = async (value) => {
+    //     try {
+    //         const response = await applicationService.printApplicationFormPdf(value);
+    //         console.log("Raw API Response:", response); // Add this line
+    //         if (response.data) {
+    //             const { file } = response.data;
+    //             if (file) {
+    //                 const filename = FileSystem.documentDirectory + 'application_form.pdf';
+    //                 const downloadResumable = FileSystem.createDownloadResumable(
+    //                     file,
+    //                     filename,
+    //                     {},
+    //                     (downloadProgress) => {
+    //                         const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+    //                         console.log('Download progress:', progress);
+    //                     }
+    //                 );
+
+    //                 try {
+    //                     const { uri } = await downloadResumable.downloadAsync();
+    //                     console.log('File downloaded to:', uri);
+    //                     Alert.alert('Success', 'PDF downloaded successfully!');
+
+    //                 } catch (downloadError) {
+    //                     console.error('Download error:', downloadError);
+    //                     Alert.alert('Error', 'Could not download the PDF.');
+    //                 }
+    //             } else {
+    //                 Alert.alert('Error', 'PDF file URL not found in the API response.');
+    //             }
+    //         } else {
+    //             Alert.alert('Error', 'Failed to fetch PDF data.');
+    //         }
+    //     } catch (error) {
+    //         console.error('API error:', error);
+    //         Alert.alert('Error', 'Failed to generate PDF.');
+    //     }
+    // };
 
     const renderItem = ({ item }) => {
         const isExpanded = expandedId === item.uuid;
@@ -101,6 +143,7 @@ const AssociationMemberList = ({
                                     ) : (
                                         <ThemedMembersMenu
                                             theme={theme}
+                                            // onFormPdf={() => formPdf(item?.uuid)}
                                             onForm={() =>
                                                 router.push(
                                                     `/dashboard/housing-applicants/association/basicInformation-form/${item?.uuid}`
@@ -133,7 +176,7 @@ const AssociationMemberList = ({
             <FlatList
                 data={data}
                 renderItem={renderItem}
-                keyExtractor={(item, index) => item.uuid ?? `fallback-${index}`}
+                keyExtractor={(item, index) => item.id ?? `fallback-${index}`}
                 contentContainerStyle={{ paddingBottom: 100 }}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.1}
@@ -210,14 +253,12 @@ const styles = {
     nameContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        width: 280,
     },
     nameTxt: {
         marginLeft: 14,
         fontWeight: '600',
         color: '#222',
         fontSize: 15,
-        // width: 170,
     },
     msgContainer: {
         flexDirection: 'row',

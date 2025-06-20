@@ -1,19 +1,19 @@
-import {
-  DrawerContentScrollView,
-  DrawerItemList,
-} from "@react-navigation/drawer";
+import { StyleSheet, Text, View, SafeAreaView, ActivityIndicator, useColorScheme } from "react-native";
+import { DrawerContentScrollView, DrawerItemList } from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import { Colors } from "../../constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { useUserStore } from "../../store/userStore";
 import { authService } from "../../components/API/AuthService";
-import { useColorScheme, View, StyleSheet } from "react-native";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
+import { useAuthDatabase } from "../../components/Hooks/useAuthDatabase";
+import { useBarangayDatabase } from "../../components/Hooks/useBarangaysList";
+import { useApplicantsDatabase } from "../../components/Hooks/useApplicantsList";
+import React, { useEffect, useState } from "react";
+
 import ThemedSubmit from "../../components/ThemedForm/ThemedSubmit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useAuthDatabase } from "../../components/hooks/useAuthDatabase";
-import { useState } from "react";
 
 const CustomDrawerContent = (props) => {
   const { clearToken } = useAuthDatabase();
@@ -44,7 +44,6 @@ const CustomDrawerContent = (props) => {
     }
   }
 
-
   function successAlert(title, message, type) {
     Toast.show({
       title: title,
@@ -71,8 +70,63 @@ const CustomDrawerContent = (props) => {
 };
 
 const DashboardLayout = () => {
+  const { loadBarangays } = useBarangayDatabase();
+  const { loadApplicants } = useApplicantsDatabase();
+
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
+  const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
+  const [initialDataError, setInitialDataError] = useState(null);
+  const applicantTypesToSync = ['new', 'schedule', 'approved', 'disapproved'];
+
+  useEffect(() => {
+    const syncAllInitialData = async () => {
+      setIsLoadingInitialData(true);
+      setInitialDataError(null);
+
+      try {
+        try {
+          const barangaysResponse = await loadBarangays();
+          console.log("Barangays loaded successfully.");
+        } catch (error) {
+          console.error("Error loading barangays:", error);
+        }
+
+        const applicantPromises = applicantTypesToSync.map(async (type) => {
+          try {
+            const response = await loadApplicants(type);
+            console.log(`Applicants (${type}) loaded successfully.`);
+          } catch (error) {
+            console.error(`Error loading applicants (${type}):`, error);
+          }
+        });
+
+        await Promise.all(applicantPromises);
+
+      } catch (overallError) {
+        console.error("Overall initial data sync failed:", overallError);
+        setInitialDataError(overallError);
+      } finally {
+        setIsLoadingInitialData(false);
+      }
+    };
+
+    syncAllInitialData();
+  }, []);
+
+  if (isLoadingInitialData) {
+    return (
+      <SafeAreaView style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Text style={{ color: theme.text, marginTop: 10 }}>Loading data...</Text>
+        {initialDataError && (
+          <Text style={{ color: theme.error, marginTop: 20, textAlign: 'center' }}>
+            {initialDataError || "An error occurred while loading data."}
+          </Text>
+        )}
+      </SafeAreaView>
+    );
+  }
 
   return (
     <Drawer
@@ -110,12 +164,17 @@ const DashboardLayout = () => {
   );
 };
 
+export default DashboardLayout;
+
 const styles = StyleSheet.create({
   logoutContainer: {
     padding: 20,
     borderTopWidth: 1,
     borderColor: "#ccc",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
-
-export default DashboardLayout;

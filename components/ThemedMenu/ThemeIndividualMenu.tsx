@@ -10,10 +10,10 @@ import {
 
 const ThemeIndividualMenu = ({
   label = "Options",
-  onForm = () => {},
-  onCancelApplication = () => {},
-  onSchedule = () => {},
-  onDelete = () => {},
+  onForm = () => { },
+  onCancelApplication = () => { },
+  onSchedule = () => { },
+  onDelete = () => { },
   theme,
   data,
 }) => {

@@ -36,6 +36,10 @@ class ApplicationService extends BaseAPIService {
     async saveRemarks(uuid: any, params: object): Promise<any> {
         return await this.request(`/applications/${uuid}/save/remarks`, "POST", params);
     }
+
+    async printApplicationFormPdf(uuid: any): Promise<any> {
+        return await this.request(`/pdf/${uuid}/download/census-form`, "GET");
+    }
 }
 
 export const applicationService = new ApplicationService();

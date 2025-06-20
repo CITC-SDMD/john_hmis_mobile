@@ -4,8 +4,8 @@ import { barangayService } from "../API/BarangayService";
 import { applicantService } from "../API/ApplicantService";
 import { applicantResidencesService } from "../API/applicantResidencesService";
 import { FontAwesome6 } from "@expo/vector-icons";
-import React, { useEffect, useState, useRef } from 'react'
-import { useColorScheme } from "react-native";
+import React, { useEffect, useState, useRef, } from 'react'
+import { useColorScheme, Alert } from "react-native";
 import { Colors } from "../../constants/Colors";
 import { useFocusEffect } from '@react-navigation/native';
 import * as DocumentPicker from 'expo-document-picker';
@@ -20,6 +20,9 @@ import ThemedRemarks from "./ThemedRemarks";
 import ThemedDocuments from "./ThemedDocuments";
 import ThemedDropdown from "../ThemedForm/ThemedDropdown";
 import ThemedApplicationForm from "../Validation/ThemedApplicationForm"
+
+import { useBarangayDatabase } from "../Hooks/useBarangaysList";
+
 
 const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
     const previousStatusRef = useRef('');
@@ -63,14 +66,14 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
         lot_owner_name: "",
         rent_without_consent_location: "",
         rent_without_consent_location_others: "",
-        is_dangerzone: false,
+        is_dangerzone: "",
         hazard: "",
         hazard_others: "",
-        is_government_project: false,
+        is_government_project: "",
         project_type: null,
         community_facility: "",
         other_project_type: "",
-        is_davao_voter: false,
+        is_davao_voter: "",
         is_court_order: "",
         not_davao_voter_place: "",
         is_remittance: "",
@@ -85,6 +88,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
     });
     const [isLoadingComponent, setIsLoadingComponent] = useState(false);
     const [errors, setErrors] = useState('' as any);
+    const { loadBarangays } = useBarangayDatabase();
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -221,7 +225,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
 
     useFocusEffect(
         React.useCallback(() => {
-            fetchAllData()
+            fetchAllData();
         }, [uuid])
     );
 
@@ -326,24 +330,21 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
 
     const fetchBarangay = async () => {
         try {
-            const response = await barangayService.getBarangays()
-            if (response.data) {
-                const formattedData = response.data.map(item => ({
-                    value: item.id,
-                    label: item.name,
-                }));
-                setBarangays(formattedData);
-            }
+            const response = await loadBarangays();
+            setBarangays(response);
         } catch (error) {
             setErrors(error)
+            console.error("Error fetching barangays:", error);
         }
     }
 
     const fetchAdminDistrict = async (barangayID: any) => {
         try {
-            const response = await barangayService.getBarangay(barangayID)
-            if (response) {
-                const district = response.data?.district
+            const selectedBarangay = barangays.find(b => b.value === barangayID);
+
+            // const response = await barangayService.getBarangay(barangayID)
+            if (selectedBarangay) {
+                const district = selectedBarangay?.district
 
                 setForm(value => ({
                     ...value,
@@ -356,6 +357,7 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
     }
 
     const handleSubmit = async () => {
+        console.log("ThemedBasicInformation: handleSubmit called.");
         try {
             await ThemedApplicationForm.validate(form, { abortEarly: false });
             setErrors({});
@@ -373,6 +375,10 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                 ...prev,
                 ...formattedErrors,
             }));
+
+            // if (onSubmit) {
+            //     onSubmit(form);
+            // }
         }
     };
 
@@ -568,11 +574,10 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
                 {/* Birtdate household Head */}
                 <View style={{ flex: 1 }}>
                     <ThemedDate
-                        label="Select a Date"
-                        required={true}
+                        label="Birtdate"
                         value={houseHold.houseHouldForm.household_birthdate}
                         onChange={handleDateChange}
-                        placeholder="Tap here to pick a date"
+                        placeholder="Select date"
                     />
                 </View>
             </View>

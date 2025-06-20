@@ -498,7 +498,6 @@ const styles = {
   nameContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: 280,
   },
   nameTxt: {
     marginLeft: 15,

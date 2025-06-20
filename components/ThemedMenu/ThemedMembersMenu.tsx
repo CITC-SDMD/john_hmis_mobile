@@ -11,6 +11,7 @@ import {
 const ThemeMembersMenu = ({
     label = "Options",
     onForm = () => { },
+    onFormPdf = () => { },
     theme,
 }) => {
     return (
@@ -53,6 +54,10 @@ const ThemeMembersMenu = ({
                 <MenuOption style={styles.contentflex} onSelect={onForm}>
                     <Ionicons name="document-text-outline" color={"#2680eb"} size={20} />
                     <Text style={styles.optionText}>View form</Text>
+                </MenuOption>
+                <MenuOption style={styles.contentflex} onSelect={onFormPdf}>
+                    <Ionicons name="download-outline" color={"#2680eb"} size={20} />
+                    <Text style={[styles.optionText, { marginTop: 4 }]}>Download form</Text>
                 </MenuOption>
             </MenuOptions>
         </Menu>
