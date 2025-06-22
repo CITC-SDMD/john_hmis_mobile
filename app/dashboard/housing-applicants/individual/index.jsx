@@ -18,11 +18,27 @@ import ApplicantList from '../../../../components/ThemendList/ThemedApplicantLis
 import { useFormsDatabase } from '../../../../components/Hooks/useCensusFormDatabase';
 import { useApplicantsDatabase } from '../../../../components/Hooks/useApplicantsList';
 import { useApplicantResidencesDatabase } from '../../../../components/Hooks/useApplicantResidencesDatabase';
+import { useApplicantRemarksDatabase } from '../../../../components/Hooks/useRemarksDatabase';
+
 
 const IndividualScreen = () => {
   const { loadApplicants } = useApplicantsDatabase();
-  const { isFormsDbInitialized, syncOfflineData, getPendingForms } = useFormsDatabase();
-  const { isResidencesDbInitialized, syncOfflineApplicantResidences, getPendingApplicantResidences } = useApplicantResidencesDatabase();
+
+  const { isFormsDbInitialized,
+    syncOfflineData,
+    getPendingForms
+  } = useFormsDatabase();
+
+  const { isResidencesDbInitialized,
+    syncOfflineApplicantResidences,
+    getPendingApplicantResidences
+  } = useApplicantResidencesDatabase();
+
+  const {
+    isRemarksDbInitialized,
+    getPendingApplicantRemarks,
+    syncOfflineApplicantRemarks,
+  } = useApplicantRemarksDatabase();
 
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
@@ -51,6 +67,8 @@ const IndividualScreen = () => {
   const [isConnected, setIsConnected] = useState(true);
   const [localFormsCount, setLocalFormsCount] = useState(0);
   const [localResidencesCount, setLocalResidencesCount] = useState(0);
+  const [localRemarksCount, setLocalRemarksCount] = useState(0);
+
   const [isSyncing, setIsSyncing] = useState(false);
 
   const activeTabApplicants = applicants[activeTab];
@@ -66,6 +84,16 @@ const IndividualScreen = () => {
     { id: 'disapproved', label: 'Disapproved' },
   ];
 
+  const updateLocalRemarksCount = useCallback(async () => {
+    if (!isRemarksDbInitialized) return;
+    try {
+      const pendingRemarks = await getPendingApplicantRemarks();
+      setLocalRemarksCount(pendingRemarks.length);
+    } catch (error) {
+      console.error('Error fetching local Remarks count:', error);
+    }
+  }, [isRemarksDbInitialized, getPendingApplicantRemarks]);
+
   const updateLocalFormsCount = useCallback(async () => {
     if (!isFormsDbInitialized) return;
     try {
@@ -76,8 +104,6 @@ const IndividualScreen = () => {
     }
   }, [isFormsDbInitialized, getPendingForms]);
 
-
-  // New useCallback for updating local residences count
   const updateLocalResidencesCount = useCallback(async () => {
     if (!isResidencesDbInitialized) return;
     try {
@@ -177,7 +203,6 @@ const IndividualScreen = () => {
     [loadApplicants]
   );
 
-
   useEffect(() => {
     isMountedRef.current = true;
     fetchData('new', 1);
@@ -201,6 +226,8 @@ const IndividualScreen = () => {
   useEffect(() => {
     if (isFormsDbInitialized) {
       updateLocalFormsCount();
+      updateLocalRemarksCount();
+      updateLocalResidencesCount();
     }
   }, [isFormsDbInitialized, updateLocalFormsCount]);
 
@@ -248,18 +275,22 @@ const IndividualScreen = () => {
       // Sync Applicant Residences data
       const residencesSyncResult = await syncOfflineApplicantResidences(true);
 
+      const remarksSyncResult = await syncOfflineApplicantRemarks(true);
+
       console.log("Forms Sync Result:", formsSyncResult);
       console.log("Residences Sync Result:", residencesSyncResult);
+      console.log("Remarks Sync Result:", remarksSyncResult);
 
       // Update counts after sync
       await updateLocalFormsCount();
       await updateLocalResidencesCount();
+      await updateLocalRemarksCount();
 
       // You might want to combine the toast messages or show a summary
-      if (formsSyncResult.syncedCount > 0 || residencesSyncResult.syncedCount > 0) {
-        Toast.show({ title: "Sync Complete", textBody: `Forms: ${formsSyncResult.syncedCount} synced, Residences: ${residencesSyncResult.syncedCount} synced.`, type: ALERT_TYPE.SUCCESS });
+      if (formsSyncResult.syncedCount > 0 || residencesSyncResult.syncedCount > 0 || remarksSyncResult.syncedCount > 0) {
+        Toast.show({ title: "Sync Complete", textBody: `Forms: ${formsSyncResult.syncedCount} synced, Residences: ${residencesSyncResult.syncedCount} synced. Remarks: ${remarksSyncResult.syncedCount} synced.`, type: ALERT_TYPE.SUCCESS });
       } else if (formsSyncResult.failedCount > 0 || residencesSyncResult.failedCount > 0) {
-        Toast.show({ title: "Sync Issues", textBody: `Forms: ${formsSyncResult.failedCount} failed, Residences: ${residencesSyncResult.failedCount} failed.`, type: ALERT_TYPE.WARNING });
+        Toast.show({ title: "Sync Issues", textBody: `Forms: ${formsSyncResult.failedCount} failed, Residences: ${residencesSyncResult.failedCount} failed. Remarks: ${remarksSyncResult.syncedCount} failed.`, type: ALERT_TYPE.WARNING });
       } else {
         Toast.show({ title: "Sync Info", textBody: "No pending data found to synchronize.", type: ALERT_TYPE.INFO });
       }
@@ -275,7 +306,7 @@ const IndividualScreen = () => {
         fetchData(activeTab, 1, true); // Refresh current tab data
       }
     }
-  }, [syncOfflineData, syncOfflineApplicantResidences, updateLocalFormsCount, updateLocalResidencesCount, fetchData, activeTab]);
+  }, [syncOfflineData, syncOfflineApplicantResidences, syncOfflineApplicantRemarks, updateLocalFormsCount, updateLocalResidencesCount, updateLocalRemarksCount, fetchData, activeTab]);
 
   const showInitialLoading = isLoading && activeTabApplicants.length === 0 && !errors;
   const hasNoData = !isLoading && activeTabApplicants.length === 0 && !errors;
@@ -298,14 +329,14 @@ const IndividualScreen = () => {
           Individual List
         </Text>
 
-        {isConnected && localFormsCount > 0 && (
+        {(isConnected && (localFormsCount > 0 || localRemarksCount > 0 || localResidencesCount > 0)) && (
           <Text style={[styles.title, { color: theme.textLight }]}>
             Pending Sync: {localFormsCount}
           </Text>
         )}
 
       </View>
-      {isConnected && localFormsCount > 0 && (
+      {(isConnected && (localFormsCount > 0 || localRemarksCount > 0 || localResidencesCount > 0)) && (
         <View style={{ justifyContent: 'space-between', alignItems: 'flex-end', marginVertical: 10 }}>
           <TouchableOpacity
             onPress={handleSyncPress}
@@ -313,12 +344,16 @@ const IndividualScreen = () => {
               styles.syncButton,
               {
                 backgroundColor:
-                  isConnected && localFormsCount > 0 && !isSyncing
+                  isConnected && (localFormsCount > 0 || localRemarksCount > 0 || localResidencesCount > 0) && !isSyncing
                     ? theme.blue
                     : '#cccccc',
               },
             ]}
-            disabled={!isConnected || localFormsCount === 0 || isSyncing}
+            disabled={
+              !isConnected ||
+              (localFormsCount === 0 && localRemarksCount === 0 && localResidencesCount === 0) ||
+              isSyncing
+            }
             accessibilityLabel="Sync pending forms"
             accessibilityHint="Uploads locally saved forms when online"
           >

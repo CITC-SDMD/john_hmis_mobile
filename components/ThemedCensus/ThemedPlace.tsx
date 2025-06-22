@@ -10,8 +10,9 @@ import ThemedButton from '../ThemedForm/ThemedButton';
 import ThemedInputField from '../ThemedForm/ThemedInputField';
 import ThemedSubmit from '../ThemedForm/ThemedSubmit';
 import React from 'react';
-import NetInfo from '@react-native-community/netinfo'; // Import NetInfo
-import { useApplicantResidencesDatabase } from '../../components/Hooks/useApplicantResidencesDatabase'; // Import your custom hook
+
+import NetInfo from '@react-native-community/netinfo';
+import { useApplicantResidencesDatabase } from '../../components/Hooks/useApplicantResidencesDatabase';
 
 const ThemedAddPlace = ({ uuid, fetchApplicant, onSubmit }) => {
     const colorScheme = useColorScheme();
@@ -29,7 +30,7 @@ const ThemedAddPlace = ({ uuid, fetchApplicant, onSubmit }) => {
 
     const handleSubmitPlace = async () => {
         setIsLoading(true);
-        setErrors({}); // Clear previous errors
+        setErrors({});
 
         const networkState = await NetInfo.fetch();
         const isConnected = networkState.isConnected && networkState.isInternetReachable;
@@ -42,7 +43,6 @@ const ThemedAddPlace = ({ uuid, fetchApplicant, onSubmit }) => {
 
         try {
             if (isConnected) {
-                // Online: Attempt to save to API
                 const response = await applicantResidencesService.saveApplicantResidences(params);
                 if (response.data) {
                     onSubmit();
@@ -51,7 +51,6 @@ const ThemedAddPlace = ({ uuid, fetchApplicant, onSubmit }) => {
                     successAlert("Successful", "You have successfully created residence.", ALERT_TYPE.SUCCESS);
                     console.log("Residence saved successfully:", response.data);
                 } else {
-                    // Fallback to local save if API call doesn't return data (though an error would usually be thrown)
                     console.warn("API did not return data. Saving to local storage.");
                     await saveApplicantResidenceLocal(params.applicant_uuid, params.place, params.inclusive_dates);
                     onSubmit();
@@ -60,7 +59,6 @@ const ThemedAddPlace = ({ uuid, fetchApplicant, onSubmit }) => {
                     successAlert("Saved Locally", "Residence saved locally. Will sync when online.", ALERT_TYPE.INFO);
                 }
             } else {
-                // Offline: Save to local SQLite
                 await saveApplicantResidenceLocal(params.applicant_uuid, params.place, params.inclusive_dates);
                 onSubmit();
                 setShowModal(false);

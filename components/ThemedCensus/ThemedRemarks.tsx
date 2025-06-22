@@ -11,7 +11,21 @@ import ThemedError from "../ThemedForm/ThemedError";
 import ThemedButton from '../../components/ThemedForm/ThemedButton';
 import ThemedInputField from '../ThemedForm/ThemedInputField';
 import ThemedSubmit from '../ThemedForm/ThemedSubmit';
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
+
+import NetInfo from '@react-native-community/netinfo';
+import { useApplicantRemarksDatabase } from '../../components/Hooks/useRemarksDatabase';
+
+interface ApplicantRemarkRecord {
+    id: number;
+    applicant_uuid: string;
+    remarks: string;
+    sex: string;
+    attested_by: string;
+    attested_signature: string;
+    synced: number;
+    created_at: string;
+}
 
 const ThemedAddRemarks = ({ sex, uuid, attested_by, remarks, attested_signature }) => {
     const colorScheme = useColorScheme();
@@ -23,8 +37,13 @@ const ThemedAddRemarks = ({ sex, uuid, attested_by, remarks, attested_signature 
         sex: sex,
     })
     const [showModal, setShowModal] = useState(false);
-    const [errors, setErrors] = useState('' as any)
-    const [isLoading, setIsLoading] = useState(false)
+    const [errors, setErrors] = useState('' as any);
+    const [isLoading, setIsLoading] = useState(false);
+    const [localRemarks, setLocalRemarks] = useState<ApplicantRemarkRecord[]>([]);
+    const [isOnline, setIsOnline] = useState<boolean | null>(null);
+
+
+    const { isRemarksDbInitialized, saveApplicantRemarkLocal, getApplicantRemarksByUuid } = useApplicantRemarksDatabase();
 
     const remarksList = [
         { label: 'Absentee Owner', value: 'Absentee Owner' },
@@ -32,24 +51,78 @@ const ThemedAddRemarks = ({ sex, uuid, attested_by, remarks, attested_signature 
         { label: 'Unoccupied', value: 'Unoccupied' },
     ]
 
-    const handleSubmitRemarks = async () => {
+    useEffect(() => {
+        const unsubscribe = NetInfo.addEventListener(state => {
+            setIsOnline(!!(state.isConnected && state.isInternetReachable));
+        });
+
+        NetInfo.fetch().then(state => {
+            setIsOnline(!!(state.isConnected && state.isInternetReachable));
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, []);
+
+    const loadLocalRemarks = useCallback(async () => {
+        if (!isRemarksDbInitialized) {
+            console.warn("Database not initialized, cannot fetch local remarks.");
+            return;
+        }
         try {
-            setIsLoading(true)
-            const formData = new FormData();
-            formData.append('applicant_uuid', uuid);
-            formData.append('remarks', form.remarks)
-            formData.append('sex', form.sex)
-            formData.append('attested_by', form.attested_by)
-            formData.append('attested_signature', form.attested_signature)
-            const response = await applicationService.saveRemarks(uuid, formData)
-            if (response.data) {
-                successAlert(
-                    "Successful",
-                    "You have been successfully created remarks",
-                    ALERT_TYPE.SUCCESS
-                );
-                setShowModal(false)
+            const remarks = await getApplicantRemarksByUuid(uuid);
+            setLocalRemarks(remarks);
+            console.log(`Fetched local remarks for UUID ${uuid}:`, remarks);
+        } catch (error) {
+            console.error("Error fetching local remarks:", error);
+            Toast.show({
+                title: "Error",
+                textBody: "Failed to load local remarks.",
+                type: ALERT_TYPE.DANGER
+            });
+        }
+    }, [isRemarksDbInitialized, getApplicantRemarksByUuid, uuid]);
+
+    useEffect(() => {
+        if (isRemarksDbInitialized) {
+            loadLocalRemarks();
+        }
+    }, [isRemarksDbInitialized, loadLocalRemarks]);
+
+    const handleSubmitRemarks = async () => {
+        setIsLoading(true)
+        setErrors({});
+
+        const isConnected = isOnline;
+
+        const formData = new FormData();
+        formData.append('applicant_uuid', uuid);
+        formData.append('remarks', form.remarks)
+        formData.append('sex', form.sex)
+        formData.append('attested_by', form.attested_by)
+        formData.append('attested_signature', form.attested_signature)
+        console.log("Submitting remarks with formData:", form.attested_signature);
+
+        try {
+            if (isConnected) {
+                const response = await applicationService.saveRemarks(uuid, formData);
+                if (response.data) {
+                    successAlert("Successful", "You have been successfully created remarks.", ALERT_TYPE.SUCCESS);
+                    setShowModal(false);
+                    setErrors({});
+                }
+            } else {
+                console.warn("API did not return data. Saving to local storage.");
+                await saveApplicantRemarkLocal(uuid,
+                    form.remarks,
+                    form.sex,
+                    form.attested_by,
+                    form.attested_signature
+                )
+                setShowModal(false);
                 setErrors({});
+                successAlert("Saved Locally", "Remarks saved locally. Will sync when online.", ALERT_TYPE.INFO);
             }
         } catch (error) {
             setErrors(error);
@@ -58,11 +131,10 @@ const ThemedAddRemarks = ({ sex, uuid, attested_by, remarks, attested_signature 
         }
     };
 
-
     const handlePickFile = async () => {
         try {
             const res = await DocumentPicker.getDocumentAsync({
-                type: '*/*',
+                type: ['image/*', 'application/pdf'],
                 copyToCacheDirectory: true,
                 multiple: false,
             });
@@ -145,47 +217,88 @@ const ThemedAddRemarks = ({ sex, uuid, attested_by, remarks, attested_signature 
                 <TouchableWithoutFeedback onPress={handleCloseModal}>
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalContainer}>
-                            <View>
-                                <ThemedDropdown
-                                    label="Remarks"
-                                    required={true}
-                                    value={form.remarks}
-                                    onChangeText={(value => setForm({ ...form, remarks: value }))}
-                                    items={remarksList}
-                                />
-                                <ThemedError error={errors?.remarks || errors?.errors?.remarks?.[0]} />
-                            </View>
+                            {isOnline ? (
+                                <>
+                                    < View >
+                                        <ThemedDropdown
+                                            label="Remarks"
+                                            required={true}
+                                            value={form.remarks}
+                                            onChangeText={(value => setForm({ ...form, remarks: value }))}
+                                            items={remarksList}
+                                        />
+                                        <ThemedError error={errors?.remarks || errors?.errors?.remarks?.[0]} />
+                                    </View>
 
-                            <View>
-                                <ThemedInputField
-                                    label="Attested by"
-                                    required={true}
-                                    value={form.attested_by}
-                                    onChangeText={(value => setForm({ ...form, attested_by: value }))}
-                                />
-                                <ThemedError error={errors?.attested_by || errors?.errors?.attested_by?.[0]} />
-                            </View>
+                                    <View>
+                                        <ThemedInputField
+                                            label="Attested by"
+                                            required={true}
+                                            value={form.attested_by}
+                                            onChangeText={(value => setForm({ ...form, attested_by: value }))}
+                                        />
+                                        <ThemedError error={errors?.attested_by || errors?.errors?.attested_by?.[0]} />
+                                    </View>
 
-                            <View>
-                                <ThemedButton
-                                    children={getFileName()}
-                                    label="Attested"
-                                    required={true}
-                                    icon={() => <FontAwesome6 name="upload" size={18} color="#fff" />}
-                                    styleButton={[styles.uploadImage, { justifyContent: 'center' }]}
-                                    onPress={handlePickFile}
-                                />
-                                <ThemedError error={errors?.attested_signature || errors?.errors?.attested_signature?.[0]} />
-                            </View>
+                                    <View>
+                                        <ThemedButton
+                                            children={getFileName()}
+                                            label="Attested"
+                                            required={true}
+                                            icon={() => <FontAwesome6 name="upload" size={18} color="#fff" />}
+                                            styleButton={[styles.uploadImage, { justifyContent: 'center' }]}
+                                            onPress={handlePickFile}
+                                        />
+                                        <ThemedError error={errors?.attested_signature || errors?.errors?.attested_signature?.[0]} />
+                                    </View>
 
-                            <ThemedSubmit style={styles.submitButton} title={"Submit"}
-                                onPress={handleSubmitRemarks}
-                            />
+                                    <ThemedSubmit style={styles.submitButton} title={"Submit"}
+                                        onPress={handleSubmitRemarks} />
+                                </>
+                            ) : (
+                                <>
+                                    < View >
+                                        <ThemedDropdown
+                                            label="Remarks"
+                                            required={true}
+                                            value={localRemarks?.remarks}
+                                            onChangeText={(value => setForm({ ...form, remarks: value }))}
+                                            items={remarksList}
+                                        />
+                                        <ThemedError error={errors?.remarks || errors?.errors?.remarks?.[0]} />
+                                    </View>
+
+                                    <View>
+                                        <ThemedInputField
+                                            label="Attested by"
+                                            required={true}
+                                            value={localRemarks?.attested_by}
+                                            onChangeText={(value => setForm({ ...form, attested_by: value }))}
+                                        />
+                                        <ThemedError error={errors?.attested_by || errors?.errors?.attested_by?.[0]} />
+                                    </View>
+
+                                    <View>
+                                        <ThemedButton
+                                            children={getFileName()}
+                                            label="Attested"
+                                            required={true}
+                                            icon={() => <FontAwesome6 name="upload" size={18} color="#fff" />}
+                                            styleButton={[styles.uploadImage, { justifyContent: 'center' }]}
+                                            onPress={handlePickFile}
+                                        />
+                                        <ThemedError error={errors?.attested_signature || errors?.errors?.attested_signature?.[0]} />
+                                    </View>
+
+                                    <ThemedSubmit style={styles.submitButton} title={"Submit"}
+                                        onPress={handleSubmitRemarks} />
+                                </>
+                            )}
                         </View>
                     </View>
                 </TouchableWithoutFeedback>
             </Modal>
-        </View>
+        </View >
     );
 };
 

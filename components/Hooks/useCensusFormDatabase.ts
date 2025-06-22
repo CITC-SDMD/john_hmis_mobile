@@ -216,65 +216,13 @@ export const useFormsDatabase = () => {
         const placeholders = Object.keys(values).map(() => '?').join(', ');
         const sqlValues = Object.values(values);
 
-        // Check if a record with this applicant_uuid already exists
-        const existingForm = await db.getFirstAsync("SELECT id FROM forms WHERE applicant_uuid = ?", [applicant_uuid]);
+        const result = await db.runAsync(
+            `INSERT INTO forms (${columns}) VALUES (${placeholders})`,
+            sqlValues
+        );
+        console.log("Form saved locally with ID:", result.lastInsertRowId);
+        return result.lastInsertRowId;
 
-        // const result = await db.runAsync(
-        //     `INSERT INTO forms (${columns}) VALUES (${placeholders})`,
-        //     sqlValues
-        // );
-        // console.log("Form saved locally with ID:", result.lastInsertRowId);
-        // return result.lastInsertRowId;
-
-        let result;
-        if (existingForm) {
-            // Update existing record
-            const updateSetClause = Object.keys(values).map(key => `${key} = ?`).join(', ');
-            result = await db.runAsync(
-                `UPDATE forms SET ${updateSetClause}, synced = 0 WHERE applicant_uuid = ?`,
-                [...sqlValues, applicant_uuid]
-            );
-            console.log("Form updated locally with ID:", existingForm.id);
-            return existingForm.id; // Return the ID of the updated row
-        } else {
-            // Insert new record
-            result = await db.runAsync(
-                `INSERT INTO forms (${columns}) VALUES (${placeholders})`,
-                sqlValues
-            );
-            console.log("Form saved locally with ID:", result.lastInsertRowId);
-            return result.lastInsertRowId;
-        }
-
-    }, [db]);
-
-
-    // NEW FUNCTION: getFormByApplicantUuid
-    const getFormByApplicantUuid = useCallback(async (applicant_uuid: string): Promise<FormRecord | null> => {
-        if (!db) {
-            console.warn("Database not initialized. Cannot get form by UUID.");
-            return null;
-        }
-        try {
-            const row = await db.getFirstAsync("SELECT * FROM forms WHERE applicant_uuid = ?", [applicant_uuid]);
-            if (row) {
-                // Convert integer booleans back to booleans
-                return {
-                    ...row,
-                    is_dangerzone: row.is_dangerzone === 1,
-                    is_government_project: row.is_government_project === 1,
-                    is_davao_voter: row.is_davao_voter === 1,
-                    is_court_order: row.is_court_order === 1,
-                    is_remittance: row.is_remittance === 1,
-                    have_property: row.have_property === 1,
-                    is_awarded: row.is_awarded === 1,
-                } as FormRecord;
-            }
-            return null;
-        } catch (error) {
-            console.error(`Error getting form by UUID ${applicant_uuid}:`, error);
-            return null;
-        }
     }, [db]);
 
     const getPendingForms = useCallback(async () => {
@@ -485,7 +433,6 @@ export const useFormsDatabase = () => {
         isFormsDbInitialized,
         saveFormDataLocal,
         getPendingForms,
-        getFormByApplicantUuid,
         markFormAsSynced,
         deleteSyncedForms,
         syncOfflineData,

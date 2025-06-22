@@ -116,14 +116,11 @@ const DashboardLayout = () => {
 
   if (isLoadingInitialData) {
     return (
-      <SafeAreaView style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+      <SafeAreaView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
         <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={{ color: theme.text, marginTop: 10 }}>Loading data...</Text>
-        {initialDataError && (
-          <Text style={{ color: theme.error, marginTop: 20, textAlign: 'center' }}>
-            {initialDataError || "An error occurred while loading data."}
-          </Text>
-        )}
+        {/* <Text style={{ color: theme.textLight }}>Loading...</Text> */}
       </SafeAreaView>
     );
   }
