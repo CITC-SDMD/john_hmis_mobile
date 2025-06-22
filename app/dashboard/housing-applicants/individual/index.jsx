@@ -6,24 +6,28 @@ import {
   ActivityIndicator,
   SafeAreaView,
   RefreshControl,
-} from "react-native";
-import { useColorScheme } from "react-native";
-import { Colors } from "../../../../constants/Colors";
-import { useEffect, useState, useRef, useCallback } from "react";
-import ThemedView from "../../../../components/ThemedForm/ThemedView";
-import ApplicantList from "../../../../components/ThemendList/ThemedApplicantList";
-
+} from 'react-native';
+import { useColorScheme } from 'react-native';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import NetInfo from '@react-native-community/netinfo';
-import { Toast, ALERT_TYPE } from "react-native-alert-notification";
-import { useFormsDatabase } from "../../../../components/Hooks/useCensusFormDatabase";
-import { useApplicantsDatabase } from "../../../../components/Hooks/useApplicantsList";
+import { Toast, ALERT_TYPE } from 'react-native-alert-notification';
+
+import { Colors } from '../../../../constants/Colors';
+import ThemedView from '../../../../components/ThemedForm/ThemedView';
+import ApplicantList from '../../../../components/ThemendList/ThemedApplicantList';
+import { useFormsDatabase } from '../../../../components/Hooks/useCensusFormDatabase';
+import { useApplicantsDatabase } from '../../../../components/Hooks/useApplicantsList';
+import { useApplicantResidencesDatabase } from '../../../../components/Hooks/useApplicantResidencesDatabase';
 
 const IndividualScreen = () => {
   const { loadApplicants } = useApplicantsDatabase();
+  const { isFormsDbInitialized, syncOfflineData, getPendingForms } = useFormsDatabase();
+  const { isResidencesDbInitialized, syncOfflineApplicantResidences, getPendingApplicantResidences } = useApplicantResidencesDatabase();
+
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
 
-  const [activeTab, setActiveTab] = useState("new");
+  const [activeTab, setActiveTab] = useState('new');
   const [errors, setErrors] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -37,42 +41,146 @@ const IndividualScreen = () => {
     disapproved: [],
   });
 
-  const [currentPage, setCurrentPage] = useState({
-    new: 1,
-    schedule: 1,
-    approved: 1,
-    disapproved: 1,
-  });
-  const [totalPages, setTotalPages] = useState({
-    new: 1,
-    schedule: 1,
-    approved: 1,
-    disapproved: 1,
+  const [pagination, setPagination] = useState({
+    new: { currentPage: 1, totalPages: 1 },
+    schedule: { currentPage: 1, totalPages: 1 },
+    approved: { currentPage: 1, totalPages: 1 },
+    disapproved: { currentPage: 1, totalPages: 1 },
   });
 
   const [isConnected, setIsConnected] = useState(true);
   const [localFormsCount, setLocalFormsCount] = useState(0);
+  const [localResidencesCount, setLocalResidencesCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+
+  const activeTabApplicants = applicants[activeTab];
+  const activeTabPagination = pagination[activeTab];
 
   const pendingRequests = useRef(new Set());
   const isMountedRef = useRef(true);
 
-  const {
-    isFormsDbInitialized,
-    syncOfflineData,
-    getPendingForms,
-  } = useFormsDatabase();
-
   const tabs = [
-    { id: "new", label: "New" },
-    { id: "schedule", label: "Schedule" },
-    { id: "approved", label: "Approved" },
-    { id: "disapproved", label: "Disapproved" },
+    { id: 'new', label: 'New' },
+    { id: 'schedule', label: 'Schedule' },
+    { id: 'approved', label: 'Approved' },
+    { id: 'disapproved', label: 'Disapproved' },
   ];
+
+  const updateLocalFormsCount = useCallback(async () => {
+    if (!isFormsDbInitialized) return;
+    try {
+      const pendingForms = await getPendingForms();
+      setLocalFormsCount(pendingForms.length);
+    } catch (error) {
+      console.error('Error fetching local forms count:', error);
+    }
+  }, [isFormsDbInitialized, getPendingForms]);
+
+
+  // New useCallback for updating local residences count
+  const updateLocalResidencesCount = useCallback(async () => {
+    if (!isResidencesDbInitialized) return;
+    try {
+      const pendingResidences = await getPendingApplicantResidences();
+      setLocalResidencesCount(pendingResidences.length);
+    } catch (error) {
+      console.error('Error fetching local residences count:', error);
+    }
+  }, [isResidencesDbInitialized, getPendingApplicantResidences]);
+
+  const fetchData = useCallback(
+    async (tabType, page = 1, isRefresh = false) => {
+      if (!isMountedRef.current) return;
+
+      setExpandedId(null);
+      setErrors(null);
+
+      const existingRequest = Array.from(pendingRequests.current).find(
+        (req) => req.tabType === tabType
+      );
+      if (existingRequest) {
+        existingRequest.controller.abort();
+        pendingRequests.current.delete(existingRequest);
+      }
+
+      const controller = new AbortController();
+      const requestId = { tabType, controller };
+      pendingRequests.current.add(requestId);
+
+      try {
+        if (isRefresh) {
+          setIsRefreshing(true);
+        } else if (page === 1) {
+          setIsLoading(true);
+        } else {
+          setIsLoadingMore(true);
+        }
+
+        const { data: fetchedApplicants, meta: fetchedMeta } = await loadApplicants(tabType, page);
+        const networkState = await NetInfo.fetch();
+        const connected = networkState.isConnected && networkState.isInternetReachable;
+
+        if (isMountedRef.current && Array.isArray(fetchedApplicants)) {
+          setApplicants((prev) => {
+            const currentData = page === 1 || isRefresh ? [] : prev[tabType];
+            const uniqueNewItems = fetchedApplicants.filter(
+              (newItem) =>
+                !currentData.some((existingItem) => existingItem.uuid === newItem.uuid)
+            );
+            return {
+              ...prev,
+              [tabType]: [...currentData, ...uniqueNewItems],
+            };
+          });
+
+          setPagination((prev) => ({
+            ...prev,
+            [tabType]: {
+              currentPage: fetchedMeta.current_page,
+              totalPages: fetchedMeta.last_page,
+            },
+          }));
+        }
+        setIsConnected(connected);
+
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          console.log('Fetch aborted for tab:', tabType);
+          return;
+        }
+        console.error('Failed to fetch applicants:', err);
+        setErrors(err);
+        const networkState = await NetInfo.fetch();
+        setIsConnected(networkState.isConnected && networkState.isInternetReachable);
+        if (!networkState.isConnected || !networkState.isInternetReachable) {
+          Toast.show({
+            title: "Offline",
+            textBody: "You are currently offline. Displaying cached data.",
+            type: ALERT_TYPE.INFO,
+          });
+        } else {
+          Toast.show({
+            title: "Error",
+            textBody: "Failed to load applicants.",
+            type: ALERT_TYPE.DANGER,
+          });
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoading(false);
+          setIsRefreshing(false);
+          setIsLoadingMore(false);
+          pendingRequests.current.delete(requestId);
+        }
+      }
+    },
+    [loadApplicants]
+  );
+
 
   useEffect(() => {
     isMountedRef.current = true;
-    fetchData("new", 1);
+    fetchData('new', 1);
 
     NetInfo.fetch().then(state => {
       setIsConnected(state.isConnected && state.isInternetReachable);
@@ -82,190 +190,42 @@ const IndividualScreen = () => {
       setIsConnected(state.isConnected && state.isInternetReachable);
     });
 
-    if (isFormsDbInitialized) {
-      updateLocalFormsCount();
-    }
-
     return () => {
       isMountedRef.current = false;
-      pendingRequests.current.forEach((request) => {
-        if (request.controller) {
-          request.controller.abort();
-        }
-      });
+      pendingRequests.current.forEach((request) => request.controller.abort());
       pendingRequests.current.clear();
       unsubscribeNetInfo();
     };
-  }, [updateLocalFormsCount, fetchData, isFormsDbInitialized]);
+  }, []);
 
-  const updateLocalFormsCount = useCallback(async () => {
+  useEffect(() => {
     if (isFormsDbInitialized) {
-      try {
-        const pendingForms = await getPendingForms();
-        setLocalFormsCount(pendingForms.length);
-      } catch (error) {
-        console.error("Error fetching local forms count:", error);
-      }
+      updateLocalFormsCount();
     }
-  }, [isFormsDbInitialized, getPendingForms]);
+  }, [isFormsDbInitialized, updateLocalFormsCount]);
 
-  const handleTabChange = useCallback((tabId) => {
-    setActiveTab(tabId);
-    setErrors(null);
-
-    if (applicants[tabId].length === 0 || isRefreshing) {
-      fetchData(tabId, 1);
-    }
-  }, [applicants, fetchData, isRefreshing]);
-
-  const fetchData = useCallback(async (tabType, page = 1, isRefresh = false) => {
-    if (!isMountedRef.current) return;
-
-    setExpandedId(null);
-    setErrors(null);
-
-    const existingRequest = Array.from(pendingRequests.current).find(
-      (req) => req.tabType === tabType
-    );
-    if (existingRequest) {
-      existingRequest.controller.abort();
-      pendingRequests.current.delete(existingRequest);
-    }
-
-    const controller = new AbortController();
-    const requestId = { tabType, controller };
-    pendingRequests.current.add(requestId);
-
-    try {
-      if (isRefresh) {
-        setIsRefreshing(true);
-      } else if (page === 1) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
+  const handleTabChange = useCallback(
+    (tabId) => {
+      setActiveTab(tabId);
+      setErrors(null);
+      if (applicants[tabId].length === 0 || isRefreshing) {
+        fetchData(tabId, 1);
       }
-
-      const { data: responseData, meta: responseMeta } = await loadApplicants(tabType, page);
-
-      const networkState = await NetInfo.fetch();
-
-      if (isMountedRef.current && responseData) {
-
-        console.log(responseData)
-
-        setApplicants((prev) => {
-          const currentData = prev[tabType] || [];
-
-          let updatedData;
-          if (networkState.isConnected && networkState.isInternetReachable) {
-            const existingUuids = new Set(currentData.map((item) => item.uuid));
-            const newItems = responseData.filter(
-              (item) => !existingUuids.has(item.uuid)
-            );
-            updatedData = page === 1 || isRefresh ? responseData : [...currentData, ...newItems];
-          } else {
-            updatedData = responseData;
-          }
-
-          return {
-            ...prev,
-            [tabType]: updatedData,
-          };
-        });
-
-        setTotalPages((prev) => ({
-          ...prev,
-          [tabType]: responseMeta?.last_page || 1,
-        }));
-
-        setCurrentPage((prev) => ({
-          ...prev,
-          [tabType]: responseMeta?.current_page || 1
-        }));
-
-        if (!networkState.isConnected || !networkState.isInternetReachable) {
-          setErrors({
-            message: "You are offline. Displaying cached data.",
-            retry: () => fetchData(tabType, page, isRefresh)
-          });
-          Toast.show({ title: "Offline", textBody: "Displaying cached applicant list.", type: ALERT_TYPE.INFO });
-        } else {
-          setErrors(null);
-        }
-      } else if (!responseData || responseData.length === 0) {
-        const networkStatus = await NetInfo.fetch();
-        if (!networkStatus.isConnected || !networkStatus.isInternetReachable) {
-          setErrors({
-            message: "You are offline. No cached data available.",
-            retry: () => fetchData(tabType, page, isRefresh)
-          });
-          Toast.show({ title: "Offline", textBody: "No cached applicant data found.", type: ALERT_TYPE.WARNING });
-        } else {
-          setErrors({
-            message: "No data found. Please try again.",
-            retry: () => fetchData(tabType, page, isRefresh)
-          });
-          Toast.show({ title: "No Data", textBody: "No applicant data found online.", type: ALERT_TYPE.INFO });
-        }
-      }
-
-    } catch (error) {
-      if (error.name !== "AbortError" && isMountedRef.current) {
-        console.error("Fetch error:", error);
-
-        const { data: offlineDataOnError } = await loadApplicants(tabType, 1);
-        if (offlineDataOnError && offlineDataOnError.length > 0) {
-          setApplicants((prev) => ({
-            ...prev,
-            [tabType]: offlineDataOnError,
-          }));
-          setTotalPages((prev) => ({ ...prev, [tabType]: 1 }));
-          setCurrentPage((prev) => ({ ...prev, [tabType]: 1 }));
-          setErrors({
-            message: "Failed to fetch online data. Displaying cached data.",
-            retry: () => fetchData(tabType, page, isRefresh)
-          });
-          Toast.show({ title: "Error", textBody: "Failed to fetch online data. Displaying cached data.", type: ALERT_TYPE.WARNING });
-        } else {
-          setErrors({
-            message: "Failed to load data. Please try again.",
-            retry: () => fetchData(tabType, page, isRefresh)
-          });
-          Toast.show({ title: "Error", textBody: "Failed to load applicant list.", type: ALERT_TYPE.DANGER });
-        }
-      }
-    } finally {
-      if (isMountedRef.current) {
-        pendingRequests.current.delete(requestId);
-        setIsLoading(false);
-        setIsLoadingMore(false);
-        setIsRefreshing(false);
-      }
-    }
-  }, [
-    isMountedRef,
-    pendingRequests,
-    setExpandedId,
-    setErrors,
-    setIsLoading,
-    setIsLoadingMore,
-    setIsRefreshing,
-    setApplicants,
-    setTotalPages,
-    setCurrentPage,
-    loadApplicants,
-  ]);
+    },
+    [applicants, fetchData, isRefreshing]
+  );
 
   const handleRefresh = useCallback(() => {
     fetchData(activeTab, 1, true);
   }, [activeTab, fetchData]);
 
   const handleEndReached = useCallback(() => {
-    const nextPage = currentPage[activeTab] + 1;
-    if (!isLoadingMore && !isLoading && nextPage <= totalPages[activeTab]) {
+    const { currentPage, totalPages } = activeTabPagination;
+    const nextPage = currentPage + 1;
+    if (!isLoadingMore && !isLoading && nextPage <= totalPages) {
       fetchData(activeTab, nextPage);
     }
-  }, [currentPage, activeTab, totalPages, isLoadingMore, isLoading, fetchData]);
+  }, [activeTabPagination, isLoadingMore, isLoading, activeTab, fetchData]);
 
   const handleDataChanged = useCallback((actionType) => {
     fetchData(activeTab, 1);
@@ -276,55 +236,49 @@ const IndividualScreen = () => {
     } else if (actionType === 'disapproved') {
       fetchData('disapproved', 1);
     }
+    fetchData('new', 1);
   }, [activeTab, fetchData]);
 
   const handleSyncPress = useCallback(async () => {
-    if (isSyncing) {
-      Toast.show({
-        title: "Syncing",
-        textBody: "Sync in progress, please wait...",
-        type: ALERT_TYPE.INFO,
-      });
-      return;
-    }
-
     setIsSyncing(true);
-
     try {
-      const { syncedCount } = await syncOfflineData(true);
-      if (syncedCount > 0) {
-        Toast.show({
-          title: "Success",
-          textBody: `${syncedCount} forms synced successfully!`,
-          type: ALERT_TYPE.SUCCESS,
-        });
-        fetchData(activeTab, 1, true);
-        fetchData('new', 1, true);
-        fetchData('schedule', 1, true);
-        fetchData('approved', 1, true);
-        fetchData('disapproved', 1, true);
+      console.log("Starting sync for all offline data...");
+      // Sync Forms data
+      const formsSyncResult = await syncOfflineData(true);
+      // Sync Applicant Residences data
+      const residencesSyncResult = await syncOfflineApplicantResidences(true);
+
+      console.log("Forms Sync Result:", formsSyncResult);
+      console.log("Residences Sync Result:", residencesSyncResult);
+
+      // Update counts after sync
+      await updateLocalFormsCount();
+      await updateLocalResidencesCount();
+
+      // You might want to combine the toast messages or show a summary
+      if (formsSyncResult.syncedCount > 0 || residencesSyncResult.syncedCount > 0) {
+        Toast.show({ title: "Sync Complete", textBody: `Forms: ${formsSyncResult.syncedCount} synced, Residences: ${residencesSyncResult.syncedCount} synced.`, type: ALERT_TYPE.SUCCESS });
+      } else if (formsSyncResult.failedCount > 0 || residencesSyncResult.failedCount > 0) {
+        Toast.show({ title: "Sync Issues", textBody: `Forms: ${formsSyncResult.failedCount} failed, Residences: ${residencesSyncResult.failedCount} failed.`, type: ALERT_TYPE.WARNING });
       } else {
-        Toast.show({
-          title: "No Data",
-          textBody: "No pending forms to sync.",
-          type: ALERT_TYPE.INFO,
-        });
+        Toast.show({ title: "Sync Info", textBody: "No pending data found to synchronize.", type: ALERT_TYPE.INFO });
       }
+
     } catch (error) {
-      console.error("Sync process error:", error);
-      Toast.show({
-        title: "Sync Error",
-        textBody: `An error occurred during sync: ${error.message || 'Unknown error'}`,
-        type: ALERT_TYPE.DANGER,
-      });
+      console.error("Error during overall sync:", error);
+      Toast.show({ title: "Sync Error", textBody: "An error occurred during synchronization.", type: ALERT_TYPE.DANGER });
     } finally {
       setIsSyncing(false);
-      await updateLocalFormsCount();
+      // Optionally refetch online data after sync if connected
+      const networkState = await NetInfo.fetch();
+      if (networkState.isConnected && networkState.isInternetReachable) {
+        fetchData(activeTab, 1, true); // Refresh current tab data
+      }
     }
-  }, [isSyncing, syncOfflineData, updateLocalFormsCount, activeTab, fetchData]);
+  }, [syncOfflineData, syncOfflineApplicantResidences, updateLocalFormsCount, updateLocalResidencesCount, fetchData, activeTab]);
 
-  const showInitialLoading = isLoading && applicants[activeTab].length === 0 && !errors;
-  const hasNoData = !isLoading && applicants[activeTab].length === 0 && !errors;
+  const showInitialLoading = isLoading && activeTabApplicants.length === 0 && !errors;
+  const hasNoData = !isLoading && activeTabApplicants.length === 0 && !errors;
 
   if (showInitialLoading) {
     return (
@@ -339,35 +293,43 @@ const IndividualScreen = () => {
 
   return (
     <ThemedView style={styles.container}>
-      <Text style={[styles.title, { color: theme.textLight }]}>
-        Individual List
-      </Text>
-
       <View style={styles.syncButtonContainer}>
-        <Text style={[styles.localCountText, { color: theme.text }]}>
-          Pending Sync: {localFormsCount}
+        <Text style={[styles.title, { color: theme.textLight }]}>
+          Individual List
         </Text>
-        <TouchableOpacity
-          onPress={handleSyncPress}
-          style={[
-            styles.syncButton,
-            {
-              backgroundColor: isConnected && localFormsCount > 0 && !isSyncing
-                ? theme.blue
-                : '#cccccc',
-            },
-          ]}
-          disabled={!isConnected || localFormsCount === 0 || isSyncing}
-          accessibilityLabel="Sync pending forms"
-          accessibilityHint="Uploads locally saved forms when online"
-        >
-          {isSyncing ? (
-            <ActivityIndicator color={theme.white} />
-          ) : (
-            <Text style={styles.syncButtonText}>Sync All</Text>
-          )}
-        </TouchableOpacity>
+
+        {isConnected && localFormsCount > 0 && (
+          <Text style={[styles.title, { color: theme.textLight }]}>
+            Pending Sync: {localFormsCount}
+          </Text>
+        )}
+
       </View>
+      {isConnected && localFormsCount > 0 && (
+        <View style={{ justifyContent: 'space-between', alignItems: 'flex-end', marginVertical: 10 }}>
+          <TouchableOpacity
+            onPress={handleSyncPress}
+            style={[
+              styles.syncButton,
+              {
+                backgroundColor:
+                  isConnected && localFormsCount > 0 && !isSyncing
+                    ? theme.blue
+                    : '#cccccc',
+              },
+            ]}
+            disabled={!isConnected || localFormsCount === 0 || isSyncing}
+            accessibilityLabel="Sync pending forms"
+            accessibilityHint="Uploads locally saved forms when online"
+          >
+            {isSyncing ? (
+              <ActivityIndicator color={theme.white} />
+            ) : (
+              <Text style={styles.syncButtonText}>Sync All</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={[styles.tabContainer, { backgroundColor: theme.background }]}>
         {tabs.map((tab) => (
@@ -432,9 +394,9 @@ const IndividualScreen = () => {
         </View>
       )}
 
-      {applicants[activeTab].length > 0 && (
+      {activeTabApplicants.length > 0 && (
         <ApplicantList
-          data={applicants[activeTab]}
+          data={activeTabApplicants}
           theme={theme}
           expandedId={expandedId}
           onEndReached={handleEndReached}
@@ -469,8 +431,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingText: {
     marginTop: 10,
@@ -478,19 +440,19 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 17,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginVertical: 10,
   },
   tabContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 15,
     borderRadius: 8,
     overflow: 'hidden',
   },
   tab: {
-    alignItems: "center",
+    alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 3,
     flex: 1,
@@ -498,22 +460,22 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 12,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     textAlign: 'center',
   },
   activeTabText: {
-    fontWeight: "700",
+    fontWeight: '700',
     fontSize: 14,
   },
   errorContainer: {
     padding: 15,
     marginBottom: 15,
     borderRadius: 8,
-    alignItems: "center",
+    alignItems: 'center',
   },
   errorText: {
     fontSize: 14,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 10,
   },
   retryButton: {
@@ -524,17 +486,17 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 50,
   },
   emptyText: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 20,
   },
   refreshButton: {
@@ -545,14 +507,14 @@ const styles = StyleSheet.create({
   },
   refreshButtonText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   syncButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
-    paddingVertical: 5,
+    // marginBottom: 15,
+    // paddingVertical: 5,
   },
   syncButton: {
     paddingVertical: 10,
@@ -568,8 +530,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   localCountText: {
-    fontSize: 14,
-    fontWeight: '500',
+    // fontSize: 14,
+    // fontWeight: '500',
+
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginVertical: 10,
   },
 });
 

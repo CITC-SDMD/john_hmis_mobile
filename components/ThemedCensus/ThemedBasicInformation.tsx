@@ -23,7 +23,6 @@ import ThemedApplicationForm from "../Validation/ThemedApplicationForm"
 
 import { useBarangayDatabase } from "../Hooks/useBarangaysList";
 
-
 const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
     const previousStatusRef = useRef('');
     const colorScheme = useColorScheme();
@@ -585,7 +584,6 @@ const ThemedBasicInformation = ({ uuid, onSubmit, isLoading = false }) => {
             <View style={[styles.row]}>
                 <View style={[styles.inputWrapper, { flex: 1, padding: 5 }]}>
                     <ThemedRadioBtn label={"Sex"}
-                        required={true}
                         onChangeText={(value) => {
                             setForm(prev => ({ ...prev, sex: value }))
                             if (errors?.['sex']) {

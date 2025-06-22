@@ -10,6 +10,8 @@ import ThemedButton from '../ThemedForm/ThemedButton';
 import ThemedInputField from '../ThemedForm/ThemedInputField';
 import ThemedSubmit from '../ThemedForm/ThemedSubmit';
 import React from 'react';
+import NetInfo from '@react-native-community/netinfo'; // Import NetInfo
+import { useApplicantResidencesDatabase } from '../../components/Hooks/useApplicantResidencesDatabase'; // Import your custom hook
 
 const ThemedAddPlace = ({ uuid, fetchApplicant, onSubmit }) => {
     const colorScheme = useColorScheme();
@@ -22,33 +24,55 @@ const ThemedAddPlace = ({ uuid, fetchApplicant, onSubmit }) => {
     const [isLoading, setIsLoading] = useState(false)
     const [errors, setErrors] = useState('' as any);
 
+    const { saveApplicantResidenceLocal } = useApplicantResidencesDatabase();
+
 
     const handleSubmitPlace = async () => {
+        setIsLoading(true);
+        setErrors({}); // Clear previous errors
+
+        const networkState = await NetInfo.fetch();
+        const isConnected = networkState.isConnected && networkState.isInternetReachable;
+
+        const params = {
+            applicant_uuid: uuid,
+            place: form.place,
+            inclusive_dates: form.inclusive_dates
+        };
+
         try {
-            setIsLoading(true)
-            const params = {
-                applicant_uuid: uuid,
-                place: form.place,
-                inclusive_dates: form.inclusive_dates
-            }
-            const response = await applicantResidencesService.saveApplicantResidences(params)
-            if (response.data) {
-                onSubmit()
-                setShowModal(false)
+            if (isConnected) {
+                // Online: Attempt to save to API
+                const response = await applicantResidencesService.saveApplicantResidences(params);
+                if (response.data) {
+                    onSubmit();
+                    setShowModal(false);
+                    fetchApplicant();
+                    successAlert("Successful", "You have successfully created residence.", ALERT_TYPE.SUCCESS);
+                    console.log("Residence saved successfully:", response.data);
+                } else {
+                    // Fallback to local save if API call doesn't return data (though an error would usually be thrown)
+                    console.warn("API did not return data. Saving to local storage.");
+                    await saveApplicantResidenceLocal(params.applicant_uuid, params.place, params.inclusive_dates);
+                    onSubmit();
+                    setShowModal(false);
+                    fetchApplicant();
+                    successAlert("Saved Locally", "Residence saved locally. Will sync when online.", ALERT_TYPE.INFO);
+                }
+            } else {
+                // Offline: Save to local SQLite
+                await saveApplicantResidenceLocal(params.applicant_uuid, params.place, params.inclusive_dates);
+                onSubmit();
+                setShowModal(false);
                 fetchApplicant();
-                successAlert(
-                    "Successful",
-                    "You have been successfully created residence",
-                    ALERT_TYPE.SUCCESS
-                );
-                setErrors({});
+                successAlert("Saved Locally", "Residence saved locally. Will sync when online.", ALERT_TYPE.INFO);
             }
-        } catch (error) {
-            setErrors(error)
+        } catch (error: any) {
+            setErrors(error);
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
     function successAlert(title, message, type) {
         Toast.show({
@@ -65,6 +89,10 @@ const ThemedAddPlace = ({ uuid, fetchApplicant, onSubmit }) => {
     const handleCloseModal = () => {
         setShowModal(false);
         setErrors({});
+        setForm({
+            place: '',
+            inclusive_dates: '',
+        });
     };
 
     if (isLoading) {
